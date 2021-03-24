@@ -59,15 +59,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Box>
         </Grid>
       ) : (
-        <Grid
-          height="92vh"
-          width="90%"
-          bg="#E9ECF5"
-          borderRadius="xl"
-          boxShadow="xl"
-        >
-          {children}
-        </Grid>
+        children
       )}
     </Flex>
   );
