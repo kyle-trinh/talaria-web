@@ -8,7 +8,6 @@ interface LayoutProps {}
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { colorMode } = useColorMode();
   const router = useRouter();
-  console.log(router);
 
   const bgColor = { light: "teal.600", dark: "gray.900" };
 

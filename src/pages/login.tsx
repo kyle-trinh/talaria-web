@@ -32,7 +32,7 @@ const Login = () => {
         credentials: "include",
       }),
     {
-      onSuccess: (data, variables) => {
+      onSuccess: () => {
         route.push("/profile");
       },
     }

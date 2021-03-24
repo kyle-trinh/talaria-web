@@ -6,11 +6,23 @@ import { Layout } from "../components/Layout";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { Hydrate } from "react-query/hydration";
+import Router from "next/router";
+import NProgress from "nprogress";
+import Head from "next/head";
 
-// const queryClient = new QueryClient();
+Router.events.on("routeChangeStart", () => {
+  NProgress.start();
+});
+
+Router.events.on("routeChangeComplete", () => {
+  NProgress.done();
+});
+
+Router.events.on("routeChangeError", () => {
+  NProgress.done();
+});
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const [user, setUser] = useState(true);
   const queryClientRef: { current: any } = useRef();
   if (!queryClientRef.current) {
     queryClientRef.current = new QueryClient();
@@ -18,6 +30,9 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <QueryClientProvider client={queryClientRef.current}>
+      <Head>
+        <link rel="stylesheet" type="text/css" href="/nprogress.css" />
+      </Head>
       <Hydrate state={pageProps.dehydratedState}>
         <ChakraProvider resetCSS theme={theme}>
           <Layout>
