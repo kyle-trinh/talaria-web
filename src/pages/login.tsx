@@ -19,13 +19,6 @@ const Login = () => {
           "Content-Type": "application/json",
         },
         credentials: "include",
-      }).then(async (response) => {
-        const data = await response.json();
-        if (response.ok) {
-          return data;
-        } else {
-          return Promise.reject(data);
-        }
       }),
     {
       onSuccess: () => {
