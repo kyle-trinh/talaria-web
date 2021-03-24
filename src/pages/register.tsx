@@ -7,14 +7,18 @@ import { dehydrate } from "react-query/hydration";
 import { Form, Formik } from "formik";
 import { InputField } from "../components/InputField";
 import Link from "next/link";
+import Header from "../components/Header";
 
-interface LoginProps {}
+interface ResponseError {
+  status: string;
+  message: string;
+}
 
-const Login = () => {
+const Register = () => {
   const route = useRouter();
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
     (data: { email: string; password: string }) =>
-      client("http://localhost:4444/api/v1/users/signin", {
+      client("http://localhost:4444/api/v1/users/signup", {
         method: "POST",
         body: JSON.stringify(data),
         headers: {
@@ -31,11 +35,18 @@ const Login = () => {
 
   return (
     <Box maxW="400" w="100%">
+      <Header title="Register" />
       <Box textStyle="h1" textAlign="center" color="teal.600" mb={20}>
-        Login
+        Register
       </Box>
       <Formik
-        initialValues={{ email: "", password: "" }}
+        initialValues={{
+          email: "",
+          password: "",
+          passwordConfirm: "",
+          firstName: "",
+          lastName: "",
+        }}
         onSubmit={(values) => {
           mutate(values);
         }}
@@ -45,15 +56,39 @@ const Login = () => {
             {isError ? (
               <Alert status="error">
                 <AlertIcon />
-                <AlertTitle mr={2}>{(error as Error).message}</AlertTitle>
+                <AlertTitle mr={2}>
+                  {(error as ResponseError).message
+                    .split(".")
+                    .splice(1)
+                    .map((err) => (
+                      <p>{err}</p>
+                    ))}
+                </AlertTitle>
               </Alert>
             ) : null}
             {isSuccess ? (
               <Alert status="success">
                 <AlertIcon />
-                <AlertTitle mr={2}>Login successful! Redirecting...</AlertTitle>
+                <AlertTitle mr={2}>
+                  Register successful! Redirecting...
+                </AlertTitle>
               </Alert>
             ) : null}
+
+            <InputField
+              name="firstName"
+              placeholder="First Name"
+              label="First Name"
+              type="text"
+              mb={5}
+            />
+            <InputField
+              name="lastName"
+              placeholder="Last Name"
+              label="Last Name"
+              type="text"
+              mb={5}
+            />
             <InputField
               name="email"
               placeholder="Email"
@@ -68,17 +103,24 @@ const Login = () => {
               type="password"
               mb={5}
             />
+            <InputField
+              name="passwordConfirm"
+              placeholder="Password Confirm"
+              label="Password Confirm"
+              type="password"
+              mb={5}
+            />
             <Button
               colorScheme="teal"
               type="submit"
               isLoading={isLoading}
               loadingText="Submitting"
             >
-              Login
+              Register
             </Button>
             <Button colorScheme="gray" ml={3}>
-              <Link href="/register">
-                <a>Register</a>
+              <Link href="/login">
+                <a>Login</a>
               </Link>
             </Button>
           </Form>
@@ -123,4 +165,4 @@ export const getServerSideProps: GetServerSideProps = async function ({
   }
 };
 
-export default Login;
+export default Register;

@@ -4,16 +4,6 @@ import { QueryClient, useQuery } from "react-query";
 import { dehydrate } from "react-query/hydration";
 import { client } from "../utils/api-client";
 
-function withSession(handler) {
-  return withIronSession(handler, {
-    password: "asd123123",
-    cookieName: "qid",
-    cookieOptions: {
-      secure: process.env.NODE_ENV === "production" ? true : false,
-    },
-  });
-}
-
 const Profile = () => {
   const { data } = useQuery("userProfile", () =>
     client("http://localhost:4444/api/v1/users/me", {
