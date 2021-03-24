@@ -1,5 +1,13 @@
-import { Button, Grid, Flex, Box } from "@chakra-ui/react";
-import { useMutation, QueryClient } from "react-query";
+import {
+  Button,
+  Grid,
+  Flex,
+  Box,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+} from "@chakra-ui/react";
+import { useMutation, QueryClient, ResultOptions } from "react-query";
 import { useRouter } from "next/router";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { client } from "../utils/api-client";
@@ -7,15 +15,15 @@ import { dehydrate } from "react-query/hydration";
 import Image from "next/image";
 import { Form, Formik } from "formik";
 import { InputField } from "../components/InputField";
-import { makeUseVisualState } from "framer-motion/types/motion/utils/use-visual-state";
+import Link from "next/link";
 
 interface LoginProps {}
 
 const Login = () => {
   const route = useRouter();
-  const { mutate, isLoading } = useMutation(
+  const { mutate, isLoading, isError, error, isSuccess } = useMutation(
     (data: { email: string; password: string }) =>
-      fetch("http://localhost:4444/api/v1/users/signin", {
+      client("http://localhost:4444/api/v1/users/signin", {
         method: "POST",
         body: JSON.stringify(data),
         headers: {
@@ -24,12 +32,8 @@ const Login = () => {
         credentials: "include",
       }),
     {
-      onSuccess: () => {
-        console.log("success?");
+      onSuccess: (data, variables) => {
         route.push("/profile");
-      },
-      onError: (error) => {
-        console.log("ERROR: ", error);
       },
     }
   );
@@ -56,15 +60,31 @@ const Login = () => {
           </Box>
           <Formik
             initialValues={{ email: "", password: "" }}
-            onSubmit={async (values) => await mutate(values)}
+            onSubmit={(values) => {
+              mutate(values);
+            }}
           >
             {() => (
               <Form>
+                {isError ? (
+                  <Alert status="error">
+                    <AlertIcon />
+                    <AlertTitle mr={2}>{(error as Error).message}</AlertTitle>
+                  </Alert>
+                ) : null}
+                {isSuccess ? (
+                  <Alert status="success">
+                    <AlertIcon />
+                    <AlertTitle mr={2}>
+                      Login successful! Redirecting...
+                    </AlertTitle>
+                  </Alert>
+                ) : null}
                 <InputField
                   name="email"
                   placeholder="Email"
                   label="Email"
-                  type="text"
+                  type="email"
                   mb={5}
                 />
                 <InputField
@@ -81,6 +101,11 @@ const Login = () => {
                   loadingText="Submitting"
                 >
                   Login
+                </Button>
+                <Button colorScheme="gray" ml={3}>
+                  <Link href="/register">
+                    <a>Register</a>
+                  </Link>
                 </Button>
               </Form>
             )}
