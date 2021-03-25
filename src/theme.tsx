@@ -32,6 +32,13 @@ const theme = extendTheme({
       fontSize: ["48px", "72px"],
       fontWeight: "bold",
       lineHeight: 1,
+      color: "teal.600",
+    },
+    title: {
+      fontSize: ["24px", "48px"],
+      fontWeight: "bold",
+      lineHeight: 1,
+      color: "teal.600",
     },
   },
   breakpoints,

@@ -31,7 +31,7 @@ const Login = () => {
 
   return (
     <Box maxW="400" w="100%">
-      <Box textStyle="h1" textAlign="center" color="teal.600" mb={20}>
+      <Box textStyle="h1" textAlign="center" mb={20} as="h1">
         Login
       </Box>
       <Formik

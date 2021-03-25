@@ -1,15 +1,22 @@
-import { Box } from "@chakra-ui/layout";
-import { Icon, Link } from "@chakra-ui/react";
-import Header from "../components/Header";
+import { Box, Icon, Link } from "@chakra-ui/react";
+import { Formik, Form } from "formik";
+import React from "react";
 import { RiUser5Fill } from "react-icons/ri";
-import { Form, Formik } from "formik";
-import { InputField } from "../components/InputField";
+import Header from "./Header";
+import { InputField } from "./InputField";
 import NextLink from "next/link";
 
-const Index = () => {
+interface ItemListingProps {
+  title: string;
+}
+
+const ItemListing = ({
+  children,
+  title,
+}: React.PropsWithChildren<ItemListingProps>) => {
   return (
     <>
-      <Header title="Dashboard" />
+      <Header title={title} />
       <Box
         gridArea="header"
         bg="white"
@@ -74,11 +81,11 @@ const Index = () => {
               </NextLink>
             </Box>
           </Box>
-          <Box>Table</Box>
+          <Box>{children}</Box>
         </Box>
       </Box>
     </>
   );
 };
 
-export default Index;
+export default ItemListing;

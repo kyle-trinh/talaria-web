@@ -29,7 +29,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           templateRows="7.2rem auto"
           templateColumns="8rem auto"
           height="92vh"
-          width="90%"
+          width="90vw"
           bg="#E9ECF5"
           templateAreas="'sidebar header' 'sidebar main'"
           borderRadius="xl"
