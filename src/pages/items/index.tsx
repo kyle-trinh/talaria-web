@@ -14,10 +14,11 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  IconButton,
 } from "@chakra-ui/react";
-import { Formik, Form, FieldArray } from "formik";
+import { Formik, Form } from "formik";
 import React, { useState } from "react";
-import { RiUser5Fill, RiFilter2Fill } from "react-icons/ri";
+import { RiUser5Fill, RiFilter2Fill, RiMoreFill } from "react-icons/ri";
 import { GrSort } from "react-icons/gr";
 import Header from "../../components/Header";
 import { InputField } from "../../components/InputField";
@@ -107,7 +108,7 @@ const Items = () => {
         borderBottomRightRadius="xl"
         display="flex"
         justifyContent="flex-start"
-        padding="20px 40px"
+        padding="10px 40px"
         flexDirection="column"
         overflow="auto"
       >
@@ -136,11 +137,11 @@ const Items = () => {
               <Menu>
                 <MenuButton as={Button}>Freeze Columns ({freezeNo})</MenuButton>
                 <MenuList>
-                  <MenuItem onClick={() => setFreezeNo(1)}>1</MenuItem>
                   <MenuItem onClick={() => setFreezeNo(2)}>2</MenuItem>
                   <MenuItem onClick={() => setFreezeNo(3)}>3</MenuItem>
                   <MenuItem onClick={() => setFreezeNo(4)}>4</MenuItem>
                   <MenuItem onClick={() => setFreezeNo(5)}>5</MenuItem>
+                  <MenuItem onClick={() => setFreezeNo(6)}>6</MenuItem>
                 </MenuList>
               </Menu>
               <Button variant="link" _hover={{ backgroundColor: "gray.200" }}>
@@ -157,9 +158,10 @@ const Items = () => {
           <Box marginTop={8} w="100%">
             <Box
               position="relative"
-              overflow="auto"
+              overflow="auto hidden"
               whiteSpace="nowrap"
               minH="500px"
+              fontSize="14px"
             >
               {status === "loading" ? (
                 <Spinner position="absolute" top="50%" left="50%" />
@@ -170,18 +172,16 @@ const Items = () => {
                   <Thead>
                     <Tr>
                       {fields.map((field, index) => {
-                        if (index < 4) {
+                        if (index < freezeNo) {
                           return (
                             <Th
                               key={index}
                               position="sticky"
-                              backgroundColor="gray.300"
+                              backgroundColor="gray.200"
                               maxW={200}
                               minW={200}
                               left={200 * index}
                               textTransform="capitalize"
-                              borderTopLeftRadius={index === 0 ? 6 : 0}
-                              borderBottomLeftRadius={index === 0 ? 6 : 0}
                             >
                               {field}
                             </Th>
@@ -190,7 +190,7 @@ const Items = () => {
                           return (
                             <Th
                               key={index}
-                              backgroundColor="gray.300"
+                              backgroundColor="gray.200"
                               textTransform="capitalize"
                             >
                               {field}
@@ -216,34 +216,34 @@ const Items = () => {
                     {data.data.data.map((single) => (
                       <Tr key={single._id}>
                         {fields.map((field, index) => {
-                          const output = truncate(single[field], 20, field);
-                          if (index < 4) {
+                          const output = truncate(single[field], 16, field);
+                          if (index < freezeNo) {
                             return (
                               <Td
                                 position="sticky"
                                 maxW={200}
                                 minW={200}
                                 left={200 * index}
-                                backgroundColor="#fff"
+                                backgroundColor="gray.50"
                                 key={index}
                               >
                                 {output}
                               </Td>
                             );
-                          } else if (index === fields.length - 1) {
-                            return (
-                              <Td
-                                position="sticky"
-                                maxW={200}
-                                minW={200}
-                                right={0}
-                                backgroundColor="#fff"
-                                key={index}
-                              >
-                                {output}
-                              </Td>
-                            );
-                          } else {
+                          }
+                          // return (
+                          //   <Td
+                          //     position="sticky"
+                          //     maxW={200}
+                          //     minW={200}
+                          //     right={0}
+                          //     backgroundColor="#fff"
+                          //     key={index}
+                          //   >
+                          //     {output}
+                          //   </Td>
+                          // );
+                          else {
                             return <Td key={index}>{output}</Td>;
                           }
                         })}
@@ -253,8 +253,25 @@ const Items = () => {
                           maxW="100px"
                           minW="100px"
                           textTransform="capitalize"
+                          bg="gray.50"
+                          _hover={{ zIndex: 1 }}
                         >
-                          Actions
+                          <Menu>
+                            <MenuButton
+                              as={IconButton}
+                              aria-label="More options"
+                              icon={<RiMoreFill />}
+                              variant="outline"
+                              size="xs"
+                              borderRadius="50%"
+                            />
+                            <MenuList>
+                              <MenuItem>View details</MenuItem>
+                              <MenuItem>Edit</MenuItem>
+                              <MenuItem>Delete</MenuItem>
+                              <MenuItem>Charge</MenuItem>
+                            </MenuList>
+                          </Menu>
                         </Td>
                       </Tr>
                     ))}
