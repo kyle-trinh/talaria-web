@@ -12,7 +12,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const router = useRouter();
   console.log(router);
 
-  const bgColor = { light: "teal.600", dark: "gray.900" };
+  const bgColor = { light: "teal.500", dark: "gray.900" };
 
   const color = { light: "black", dark: "white" };
   return (

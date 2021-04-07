@@ -9,9 +9,14 @@ import {
   Tr,
   Th,
   Td,
+  Spinner,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
 import { Formik, Form, FieldArray } from "formik";
-import React from "react";
+import React, { useState } from "react";
 import { RiUser5Fill, RiFilter2Fill } from "react-icons/ri";
 import { GrSort } from "react-icons/gr";
 import Header from "../../components/Header";
@@ -21,7 +26,7 @@ import { BsThreeDots } from "react-icons/bs";
 import { BASE_URL } from "../../constants";
 import { useQuery } from "react-query";
 import { client } from "../../utils/api-client";
-import { truncate } from "../../utils";
+import { truncate } from "../../utils/index";
 
 const data = [
   {
@@ -71,8 +76,9 @@ const fields = [
 ];
 
 const Items = () => {
+  const [freezeNo, setFreezeNo] = useState(4);
   const { status, data, error, isFetching } = useQuery("items", () =>
-    client(`${BASE_URL}/items?page=1&limit=10`)
+    client(`${BASE_URL}/items?page=1&limit=8`)
   );
   return (
     <>
@@ -127,13 +133,16 @@ const Items = () => {
               <NextLink href="/items/create" passHref>
                 <Button colorScheme="teal">Add items +</Button>
               </NextLink>
-              <Button
-                variant="link"
-                padding="0 6px"
-                _hover={{ backgroundColor: "gray.200" }}
-              >
-                Freeze Column
-              </Button>
+              <Menu>
+                <MenuButton as={Button}>Freeze Columns ({freezeNo})</MenuButton>
+                <MenuList>
+                  <MenuItem onClick={() => setFreezeNo(1)}>1</MenuItem>
+                  <MenuItem onClick={() => setFreezeNo(2)}>2</MenuItem>
+                  <MenuItem onClick={() => setFreezeNo(3)}>3</MenuItem>
+                  <MenuItem onClick={() => setFreezeNo(4)}>4</MenuItem>
+                  <MenuItem onClick={() => setFreezeNo(5)}>5</MenuItem>
+                </MenuList>
+              </Menu>
               <Button variant="link" _hover={{ backgroundColor: "gray.200" }}>
                 <Icon as={RiFilter2Fill} />
               </Button>
@@ -145,13 +154,18 @@ const Items = () => {
               </Button>
             </HStack>
           </Box>
-          {status === "loading" ? (
-            "Loading..."
-          ) : status === "error" ? (
-            <span>{error.message}</span>
-          ) : (
-            <Box marginTop={8} w="100%">
-              <Box position="relative" overflow="auto" whiteSpace="nowrap">
+          <Box marginTop={8} w="100%">
+            <Box
+              position="relative"
+              overflow="auto"
+              whiteSpace="nowrap"
+              minH="500px"
+            >
+              {status === "loading" ? (
+                <Spinner position="absolute" top="50%" left="50%" />
+              ) : status === "error" ? (
+                <span>{error.message}</span>
+              ) : (
                 <Table>
                   <Thead>
                     <Tr>
@@ -159,6 +173,7 @@ const Items = () => {
                         if (index < 4) {
                           return (
                             <Th
+                              key={index}
                               position="sticky"
                               backgroundColor="gray.300"
                               maxW={200}
@@ -174,6 +189,7 @@ const Items = () => {
                         } else {
                           return (
                             <Th
+                              key={index}
                               backgroundColor="gray.300"
                               textTransform="capitalize"
                             >
@@ -198,9 +214,9 @@ const Items = () => {
                   </Thead>
                   <Tbody>
                     {data.data.data.map((single) => (
-                      <Tr>
+                      <Tr key={single._id}>
                         {fields.map((field, index) => {
-                          const output = truncate(single[field], 30);
+                          const output = truncate(single[field], 20, field);
                           if (index < 4) {
                             return (
                               <Td
@@ -209,6 +225,7 @@ const Items = () => {
                                 minW={200}
                                 left={200 * index}
                                 backgroundColor="#fff"
+                                key={index}
                               >
                                 {output}
                               </Td>
@@ -221,21 +238,31 @@ const Items = () => {
                                 minW={200}
                                 right={0}
                                 backgroundColor="#fff"
+                                key={index}
                               >
                                 {output}
                               </Td>
                             );
                           } else {
-                            return <Td>{output}</Td>;
+                            return <Td key={index}>{output}</Td>;
                           }
                         })}
+                        <Td
+                          right={0}
+                          position="sticky"
+                          maxW="100px"
+                          minW="100px"
+                          textTransform="capitalize"
+                        >
+                          Actions
+                        </Td>
                       </Tr>
                     ))}
                   </Tbody>
                 </Table>
-              </Box>
+              )}
             </Box>
-          )}
+          </Box>
         </Box>
       </Box>
     </>

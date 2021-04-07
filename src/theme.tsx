@@ -42,6 +42,13 @@ const theme = extendTheme({
     },
   },
   breakpoints,
+  styles: {
+    global: {
+      a: {
+        color: "var(--chakra-colors-blue-600)",
+      },
+    },
+  },
 });
 
 export default theme;

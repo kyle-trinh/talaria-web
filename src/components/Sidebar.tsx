@@ -96,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({}) => {
           const isSelected = router.pathname.split("/")[1] === item.pathname;
 
           return (
-            <NextLink href={`/${item.pathname}`} passHref>
+            <NextLink href={`/${item.pathname}`} passHref key={item.name}>
               <Link
                 w="100%"
                 borderRight={6}
