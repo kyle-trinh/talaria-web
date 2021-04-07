@@ -10,7 +10,7 @@ import {
   Th,
   Td,
 } from "@chakra-ui/react";
-import { Formik, Form } from "formik";
+import { Formik, Form, FieldArray } from "formik";
 import React from "react";
 import { RiUser5Fill, RiFilter2Fill } from "react-icons/ri";
 import { GrSort } from "react-icons/gr";
@@ -18,6 +18,10 @@ import Header from "../../components/Header";
 import { InputField } from "../../components/InputField";
 import NextLink from "next/link";
 import { BsThreeDots } from "react-icons/bs";
+import { BASE_URL } from "../../constants";
+import { useQuery } from "react-query";
+import { client } from "../../utils/api-client";
+import { truncate } from "../../utils";
 
 const data = [
   {
@@ -45,19 +49,19 @@ const data = [
 ];
 
 const fields = [
+  "_id",
   "createdAt",
+  "name",
+  "pricePerItem",
   "quantity",
-  "tax",
+  "link",
+  "status",
   "usShippingFee",
+  "tax",
   "extraShippingCost",
   "actWgtPerItem",
-  "status",
   "website",
   "itemType",
-  "_id",
-  "name",
-  "link",
-  "pricePerItem",
   "estWgtPerItem",
   "customId",
   "actualCost",
@@ -67,6 +71,9 @@ const fields = [
 ];
 
 const Items = () => {
+  const { status, data, error, isFetching } = useQuery("items", () =>
+    client(`${BASE_URL}/items?page=1&limit=10`)
+  );
   return (
     <>
       <Header title="Dashboard" />
@@ -138,88 +145,97 @@ const Items = () => {
               </Button>
             </HStack>
           </Box>
-          <Box marginTop={8} w="100%">
-            <Box position="relative" overflow="auto" whiteSpace="nowrap">
-              <Table>
-                <Thead>
-                  <Tr>
-                    {fields.map((field, index) => {
-                      if (index < 4) {
-                        return (
-                          <Th
-                            position="sticky"
-                            backgroundColor="teal"
-                            maxW={200}
-                            minW={200}
-                            left={200 * index}
-                            color="#fff"
-                            textTransform="capitalize"
-                            borderTopLeftRadius={index === 0 ? 50 : 0}
-                            borderBottomLeftRadius={index === 0 ? 50 : 0}
-                          >
-                            {field}
-                          </Th>
-                        );
-                      } else {
-                        return (
-                          <Th color="#fff" backgroundColor="teal">
-                            {field}
-                          </Th>
-                        );
-                      }
-                    })}
-                    <Th
-                      right={0}
-                      position="sticky"
-                      maxW="100px"
-                      minW="100px"
-                      backgroundColor="teal"
-                      color="#fff"
-                      borderTopRightRadius={50}
-                      borderBottomRightRadius={50}
-                    >
-                      Actions
-                    </Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {data.map((single) => (
+          {status === "loading" ? (
+            "Loading..."
+          ) : status === "error" ? (
+            <span>{error.message}</span>
+          ) : (
+            <Box marginTop={8} w="100%">
+              <Box position="relative" overflow="auto" whiteSpace="nowrap">
+                <Table>
+                  <Thead>
                     <Tr>
                       {fields.map((field, index) => {
                         if (index < 4) {
                           return (
-                            <Td
+                            <Th
                               position="sticky"
+                              backgroundColor="gray.300"
                               maxW={200}
                               minW={200}
                               left={200 * index}
-                              backgroundColor="#fff"
+                              textTransform="capitalize"
+                              borderTopLeftRadius={index === 0 ? 6 : 0}
+                              borderBottomLeftRadius={index === 0 ? 6 : 0}
                             >
-                              {single[field]}
-                            </Td>
-                          );
-                        } else if (index === fields.length - 1) {
-                          return (
-                            <Td
-                              position="sticky"
-                              maxW={200}
-                              minW={200}
-                              right={0}
-                              backgroundColor="#fff"
-                            >
-                              {single[field]}
-                            </Td>
+                              {field}
+                            </Th>
                           );
                         } else {
-                          return <Td>{single[field]}</Td>;
+                          return (
+                            <Th
+                              backgroundColor="gray.300"
+                              textTransform="capitalize"
+                            >
+                              {field}
+                            </Th>
+                          );
                         }
                       })}
+                      <Th
+                        right={0}
+                        position="sticky"
+                        maxW="100px"
+                        minW="100px"
+                        backgroundColor="gray.300"
+                        borderTopRightRadius={6}
+                        borderBottomRightRadius={6}
+                        textTransform="capitalize"
+                      >
+                        Actions
+                      </Th>
                     </Tr>
-                  ))}
-                </Tbody>
-              </Table>
+                  </Thead>
+                  <Tbody>
+                    {data.data.data.map((single) => (
+                      <Tr>
+                        {fields.map((field, index) => {
+                          const output = truncate(single[field], 30);
+                          if (index < 4) {
+                            return (
+                              <Td
+                                position="sticky"
+                                maxW={200}
+                                minW={200}
+                                left={200 * index}
+                                backgroundColor="#fff"
+                              >
+                                {output}
+                              </Td>
+                            );
+                          } else if (index === fields.length - 1) {
+                            return (
+                              <Td
+                                position="sticky"
+                                maxW={200}
+                                minW={200}
+                                right={0}
+                                backgroundColor="#fff"
+                              >
+                                {output}
+                              </Td>
+                            );
+                          } else {
+                            return <Td>{output}</Td>;
+                          }
+                        })}
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
             </Box>
-          </Box>
+          )}
         </Box>
       </Box>
     </>
