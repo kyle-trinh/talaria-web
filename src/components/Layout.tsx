@@ -1,6 +1,5 @@
 import { Flex, useColorMode, Grid, Box } from "@chakra-ui/react";
 import React from "react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import { Sidebar } from "./Sidebar";
@@ -12,7 +11,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const router = useRouter();
   console.log(router);
 
-  const bgColor = { light: "teal.500", dark: "gray.900" };
+  const bgColor = { light: "#00909E", dark: "gray.900" };
 
   const color = { light: "black", dark: "white" };
   return (

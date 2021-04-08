@@ -15,6 +15,7 @@ import {
   MenuList,
   MenuItem,
   IconButton,
+  Tooltip,
 } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
 import React, { useState } from "react";
@@ -78,8 +79,10 @@ const fields = [
 
 const Items = () => {
   const [freezeNo, setFreezeNo] = useState(4);
-  const { status, data, error, isFetching } = useQuery("items", () =>
-    client(`${BASE_URL}/items?page=1&limit=8`)
+  const [page, setPage] = useState(1);
+  const [limit] = useState(8);
+  const { status, data, error, isFetching } = useQuery(["items", page], () =>
+    client(`${BASE_URL}/items?page=${page}&limit=${limit}`)
   );
   return (
     <>
@@ -155,19 +158,19 @@ const Items = () => {
               </Button>
             </HStack>
           </Box>
-          <Box marginTop={8} w="100%">
-            <Box
-              position="relative"
-              overflow="auto hidden"
-              whiteSpace="nowrap"
-              minH="500px"
-              fontSize="14px"
-            >
-              {status === "loading" ? (
-                <Spinner position="absolute" top="50%" left="50%" />
-              ) : status === "error" ? (
-                <span>{error.message}</span>
-              ) : (
+          {status === "loading" ? (
+            <Spinner position="absolute" top="50%" left="50%" />
+          ) : status === "error" ? (
+            <span>{error.message}</span>
+          ) : (
+            <Box marginTop={8} w="100%">
+              <Box
+                position="relative"
+                overflow="auto hidden"
+                whiteSpace="nowrap"
+                minH="500px"
+                fontSize="14px"
+              >
                 <Table>
                   <Thead>
                     <Tr>
@@ -227,7 +230,10 @@ const Items = () => {
                                 backgroundColor="gray.50"
                                 key={index}
                               >
-                                {output}
+                                {/* {output} */}
+                                <Tooltip label={output} aria-label="A tooltip">
+                                  {output}
+                                </Tooltip>
                               </Td>
                             );
                           }
@@ -277,9 +283,29 @@ const Items = () => {
                     ))}
                   </Tbody>
                 </Table>
-              )}
+              </Box>
+
+              <HStack alignItems="center" justifyContent="flex-end" mt="16px">
+                <Button
+                  disabled={page === 1}
+                  colorScheme="teal"
+                  onClick={() => setPage((p) => p - 1)}
+                >
+                  Prev
+                </Button>
+                <p>
+                  {page} of {Math.ceil(data.data.totalCount / limit)}
+                </p>
+                <Button
+                  colorScheme="teal"
+                  disabled={page === Math.ceil(data.data.totalCount / limit)}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next
+                </Button>
+              </HStack>
             </Box>
-          </Box>
+          )}
         </Box>
       </Box>
     </>
