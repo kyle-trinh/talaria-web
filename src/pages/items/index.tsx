@@ -20,7 +20,7 @@ import {
 import { Formik, Form } from "formik";
 import React, { useState } from "react";
 import { RiUser5Fill, RiFilter2Fill, RiMoreFill } from "react-icons/ri";
-import { GrSort } from "react-icons/gr";
+import { GrCurrency, GrSort } from "react-icons/gr";
 import Header from "../../components/Header";
 import { InputField } from "../../components/InputField";
 import NextLink from "next/link";
@@ -29,31 +29,58 @@ import { BASE_URL } from "../../constants";
 import { useQuery } from "react-query";
 import { client } from "../../utils/api-client";
 import { truncate } from "../../utils/index";
+import ExternalLink from "../../components/ExternalLink";
 
-const data = [
-  {
-    createdAt: "2021-03-18T04:55:47.831Z",
-    quantity: 10,
-    tax: 0,
-    usShippingFee: 0,
-    extraShippingCost: 0,
-    actWgtPerItem: 0,
-    status: "ordered",
-    website: "amazon",
-    itemType: "others",
-    _id: "6052dd783de14606771428cf",
-    name: "Lược màu tím",
-    link:
-      "https://www.amazon.com/dp/B01NA7KNTS/ref=twister_B01EY97QUE?_encoding=UTF8&th=",
-    pricePerItem: 10.99,
-    estWgtPerItem: 0.34,
-    customId: "item-1",
-    actualCost: 1425392.87794954,
-    orderAccount: "604fd95ca213d706709c716a",
-    orderDate: "2021-03-18T15:42:16.572Z",
-    transaction: "605374d8cd74a8055229f4af",
-  },
-];
+function serialize(input: string | number, type: string, number: number) {
+  if (input !== undefined) {
+    if (type === "string") {
+      return [
+        `${input.toString().slice(0, number)} ${
+          input.toString().length >= number ? "..." : ""
+        }`,
+        input,
+      ];
+    } else if (type === "date") {
+      return [
+        new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" }).format(
+          new Date(input)
+        ),
+        new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" }).format(
+          new Date(input)
+        ),
+      ];
+    } else if (type === "usd" || type === "vnd") {
+      return [
+        new Intl.NumberFormat("us-US", {
+          style: "currency",
+          currency: type,
+        }).format(input),
+        new Intl.NumberFormat("us-US", {
+          style: "currency",
+          currency: type,
+        }).format(input),
+      ];
+    } else if (type === "link") {
+      return [
+        <span>
+          <ExternalLink href={input.toString()}>
+            {input.slice(0, number) + "..."}
+          </ExternalLink>
+        </span>,
+        input,
+      ];
+    } else if (type === "percent") {
+      return [input + "%", input + "%"];
+    } else if (type === "kg") {
+      return [input + "kg", input + "kg"];
+    } else if (type === "badge") {
+      return [input, input];
+    } else {
+      return [input, input];
+    }
+  }
+  return ["-", "-"];
+}
 
 const fields = [
   "_id",
@@ -75,6 +102,154 @@ const fields = [
   "orderAccount",
   "orderDate",
   "transaction",
+];
+
+const fieldsCopy = [
+  {
+    name: "createdAt",
+    type: "string",
+    full: "created at",
+  },
+  {
+    name: "updatedAt",
+    type: "string",
+    full: "updated at",
+  },
+  {
+    name: "name",
+    type: "string",
+    full: "name",
+  },
+  {
+    name: "link",
+    type: "externalLink",
+    full: "link",
+  },
+  {
+    name: "pricePerItem",
+    type: "string",
+    full: "price/item",
+  },
+  {
+    name: "actPricePerItem",
+    type: "string",
+    full: "actual price/item",
+  },
+  {
+    name: "quantity",
+    type: "number",
+    full: "quantity",
+  },
+  {
+    name: "tax",
+    type: "string",
+    full: "tax",
+  },
+  {
+    name: "usShippingFee",
+    type: "string",
+    full: "us shipping fee",
+  },
+  {
+    name: "extraShippingCost",
+    type: "string",
+    full: "extra shipping",
+  },
+  {
+    name: "estWgtPerItem",
+    type: "string",
+    full: "estimated weight/item",
+  },
+  {
+    name: "actWgtPerItem",
+    type: "string",
+    full: "actual weight/item",
+  },
+  {
+    name: "actualCost",
+    type: "string",
+    full: "actual cost",
+  },
+  {
+    name: "trackingLink",
+    type: "externalLink",
+    full: "tracking link",
+  },
+  {
+    name: "invoiceLink",
+    type: "externalLink",
+    full: "invoice link",
+  },
+  {
+    name: "orderDate",
+    type: "string",
+    full: "order date",
+  },
+  {
+    name: "arrvlAtWarehouseDate",
+    type: "string",
+    full: "arrived at warehouse",
+  },
+  {
+    name: "customerRcvDate",
+    type: "string",
+    full: "customer reception",
+  },
+  {
+    name: "returnDate",
+    type: "string",
+    full: "return date",
+  },
+  {
+    name: "returnArrvlDate",
+    type: "string",
+    full: "return arrival",
+  },
+  {
+    name: "notes",
+    type: "string",
+    full: "notes",
+  },
+  {
+    name: "status",
+    type: "badge",
+    full: "status",
+  },
+  {
+    name: "website",
+    type: "badge",
+    full: "website",
+  },
+  {
+    name: "commissionRate",
+    type: "string",
+    full: "commission rate",
+  },
+  {
+    name: "itemType",
+    type: "badge",
+    full: "item type",
+  },
+  {
+    name: "customId",
+    type: "string",
+    full: "id",
+  },
+  {
+    name: "orderAccount",
+    type: "internalLink",
+    full: "order account",
+  },
+  {
+    name: "warehouse",
+    type: "internalLink",
+    full: "warehouse",
+  },
+  {
+    name: "transaction",
+    type: "internalLink",
+    full: "transaction",
+  },
 ];
 
 const Items = () => {
@@ -174,19 +349,19 @@ const Items = () => {
                 <Table>
                   <Thead>
                     <Tr>
-                      {fields.map((field, index) => {
+                      {fieldsCopy.map((field, index) => {
                         if (index < freezeNo) {
                           return (
                             <Th
                               key={index}
                               position="sticky"
-                              backgroundColor="gray.200"
+                              backgroundColor="gray.300"
                               maxW={200}
                               minW={200}
                               left={200 * index}
                               textTransform="capitalize"
                             >
-                              {field}
+                              {field.full}
                             </Th>
                           );
                         } else {
@@ -196,7 +371,7 @@ const Items = () => {
                               backgroundColor="gray.200"
                               textTransform="capitalize"
                             >
-                              {field}
+                              {field.full}
                             </Th>
                           );
                         }
@@ -216,10 +391,14 @@ const Items = () => {
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {data.data.data.map((single) => (
+                    {data.data.data.map((single: IItem & { _id: string }) => (
                       <Tr key={single._id}>
-                        {fields.map((field, index) => {
-                          const output = truncate(single[field], 16, field);
+                        {fieldsCopy.map((field, index) => {
+                          const [output, fullStr] = truncate(
+                            single[field.name],
+                            16,
+                            field.type
+                          );
                           if (index < freezeNo) {
                             return (
                               <Td
@@ -231,25 +410,12 @@ const Items = () => {
                                 key={index}
                               >
                                 {/* {output} */}
-                                <Tooltip label={output} aria-label="A tooltip">
+                                <Tooltip label={fullStr} aria-label="A tooltip">
                                   {output}
                                 </Tooltip>
                               </Td>
                             );
-                          }
-                          // return (
-                          //   <Td
-                          //     position="sticky"
-                          //     maxW={200}
-                          //     minW={200}
-                          //     right={0}
-                          //     backgroundColor="#fff"
-                          //     key={index}
-                          //   >
-                          //     {output}
-                          //   </Td>
-                          // );
-                          else {
+                          } else {
                             return <Td key={index}>{output}</Td>;
                           }
                         })}
