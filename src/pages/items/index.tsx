@@ -16,6 +16,14 @@ import {
   MenuItem,
   IconButton,
   Tooltip,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverHeader,
+  PopoverBody,
+  PopoverCloseButton,
+  Checkbox,
+  CheckboxGroup,
 } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
 import React, { useState } from "react";
@@ -104,16 +112,91 @@ const fields = [
   "transaction",
 ];
 
-const fieldsCopy = [
+const fieldConverter = {
+  _id: "id",
+  createdAt: "created at",
+  name: "name",
+  link: "link",
+  pricePerItem: "price per item",
+  actPricePerItem: "actual price per item",
+  quantity: "quantity",
+  tax: "tax",
+  usShippingFee: "us shipping fee",
+  extraShippingCost: "extra shipping cost",
+  estWgtPerItem: "estimated weight/item",
+  actWgtPerItem: "actual weight/item",
+  actualCost: "actual cost",
+  trackingLink: "tracking link",
+  invoiceLink: "invoice link",
+  orderDate: "order date",
+  arrvlAtWarehouseDate: "arrived at warehouse",
+  customerRcvDate: "customer reception",
+  returnDate: "return date",
+  returnArrvlDate: "return arrival",
+  notes: "notes",
+  status: "status",
+  website: "website",
+  commissionRate: "comission rate",
+  itemType: "item type",
+  orderAccount: "order account",
+  warehouse: "warehouse",
+  transaction: "transaction",
+  updatedAt: "updated at",
+};
+
+const defaultFields = [
+  {
+    name: "_id",
+    type: "internalLink",
+    full: "id",
+  },
   {
     name: "createdAt",
     type: "string",
     full: "created at",
   },
   {
-    name: "updatedAt",
+    name: "name",
     type: "string",
-    full: "updated at",
+    full: "name",
+  },
+  {
+    name: "link",
+    type: "externalLink",
+    full: "link",
+  },
+  {
+    name: "pricePerItem",
+    type: "string",
+    full: "price/item",
+  },
+  {
+    name: "quantity",
+    type: "number",
+    full: "quantity",
+  },
+  {
+    name: "tax",
+    type: "string",
+    full: "tax",
+  },
+  {
+    name: "usShippingFee",
+    type: "string",
+    full: "us shipping fee",
+  },
+];
+
+const fieldsCopy = [
+  {
+    name: "_id",
+    type: "internalLink",
+    full: "id",
+  },
+  {
+    name: "createdAt",
+    type: "string",
+    full: "created at",
   },
   {
     name: "name",
@@ -231,11 +314,6 @@ const fieldsCopy = [
     full: "item type",
   },
   {
-    name: "customId",
-    type: "string",
-    full: "id",
-  },
-  {
     name: "orderAccount",
     type: "internalLink",
     full: "order account",
@@ -250,14 +328,25 @@ const fieldsCopy = [
     type: "internalLink",
     full: "transaction",
   },
+  {
+    name: "updatedAt",
+    type: "string",
+    full: "updated at",
+  },
 ];
 
 const Items = () => {
   const [freezeNo, setFreezeNo] = useState(4);
+  const [selected, setSelected] = useState(
+    defaultFields.map((field) => field.name)
+  );
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
-  const { status, data, error, isFetching } = useQuery(["items", page], () =>
-    client(`${BASE_URL}/items?page=${page}&limit=${limit}`)
+  const [selectedOpen, setSelectedOpen] = useState(false);
+  const { status, data, error, isFetching } = useQuery(
+    ["items", page, selected],
+    () =>
+      client(`${BASE_URL}/items?page=${page}&limit=${limit}&fields=${selected}`)
   );
   return (
     <>
@@ -328,9 +417,81 @@ const Items = () => {
               <Button variant="link" _hover={{ backgroundColor: "gray.200" }}>
                 <Icon as={GrSort} />
               </Button>
-              <Button variant="link" _hover={{ backgroundColor: "gray.200" }}>
-                <Icon as={BsThreeDots} />
-              </Button>
+              <Popover
+                placement="bottom-end"
+                returnFocusOnClose={false}
+                isOpen={selectedOpen}
+                onClose={() => setSelectedOpen(false)}
+                closeOnBlur={true}
+                onOpen={() => setSelectedOpen(true)}
+              >
+                <PopoverTrigger>
+                  <Button
+                    variant="link"
+                    _hover={{ backgroundColor: "gray.200" }}
+                  >
+                    <Icon as={BsThreeDots} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <PopoverCloseButton />
+                  <PopoverHeader>Make your selection</PopoverHeader>
+                  <PopoverBody>
+                    <Formik
+                      initialValues={{ checked: selected }}
+                      onSubmit={(values) => {
+                        setSelected(values.checked);
+                        setSelectedOpen(false);
+                      }}
+                    >
+                      {(props) => (
+                        <Form>
+                          <CheckboxGroup
+                            colorScheme="teal"
+                            defaultValue={props.values.checked}
+                            onChange={(value) => {
+                              props.setFieldValue("checked", value);
+                            }}
+                            value={props.values.checked}
+                          >
+                            {fieldsCopy.map((field) => (
+                              <Checkbox
+                                border="1px solid var(--chakra-colors-teal-600)"
+                                padding="2px 6px"
+                                value={field.name}
+                                colorScheme="teal"
+                                borderRadius="lg"
+                                textTransform="capitalize"
+                                margin="4px 4px"
+                                key={field.name}
+                                // onChange={(e) => e.target.checked }
+                              >
+                                {field.full}
+                              </Checkbox>
+                            ))}
+                          </CheckboxGroup>
+                          <Button type="submit" colorScheme="teal">
+                            Submit
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              props.setFieldValue(
+                                "checked",
+                                fieldsCopy.map((field) => field.name)
+                              );
+                              setSelected(
+                                fieldsCopy.map((field) => field.name)
+                              );
+                            }}
+                          >
+                            select all
+                          </Button>
+                        </Form>
+                      )}
+                    </Formik>
+                  </PopoverBody>
+                </PopoverContent>
+              </Popover>
             </HStack>
           </Box>
           {status === "loading" ? (
@@ -349,7 +510,7 @@ const Items = () => {
                 <Table>
                   <Thead>
                     <Tr>
-                      {fieldsCopy.map((field, index) => {
+                      {selected.map((field, index) => {
                         if (index < freezeNo) {
                           return (
                             <Th
@@ -361,7 +522,7 @@ const Items = () => {
                               left={200 * index}
                               textTransform="capitalize"
                             >
-                              {field.full}
+                              {fieldConverter[field]}
                             </Th>
                           );
                         } else {
@@ -371,7 +532,7 @@ const Items = () => {
                               backgroundColor="gray.200"
                               textTransform="capitalize"
                             >
-                              {field.full}
+                              {fieldConverter[field]}
                             </Th>
                           );
                         }
@@ -393,11 +554,11 @@ const Items = () => {
                   <Tbody>
                     {data.data.data.map((single: IItem & { _id: string }) => (
                       <Tr key={single._id}>
-                        {fieldsCopy.map((field, index) => {
+                        {selected.map((field, index) => {
                           const [output, fullStr] = truncate(
-                            single[field.name],
+                            single[field],
                             16,
-                            field.type
+                            fieldsCopy.find((el) => el.name === field)?.type
                           );
                           if (index < freezeNo) {
                             return (

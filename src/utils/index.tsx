@@ -1,5 +1,6 @@
 import ExternalLink from "../components/ExternalLink";
 import Link from "next/link";
+import { Tag } from "@chakra-ui/react";
 
 function truncate(str: string, num: number, type: string) {
   if (str) {
@@ -13,13 +14,9 @@ function truncate(str: string, num: number, type: string) {
         str,
       ];
     } else if (type === "internalLink") {
-      return [
-        <span>
-          <Link href="/">{str}</Link>
-        </span>,
-        ,
-        str,
-      ];
+      return [<Link href="/">{str.slice(0, 16) + "..."}</Link>, str];
+    } else if (type === "badge") {
+      return [<Tag size="md">{str}</Tag>, str];
     } else {
       return [str, str];
     }
