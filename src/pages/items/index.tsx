@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   HStack,
+  VStack,
   Icon,
   Table,
   Thead,
@@ -24,15 +25,18 @@ import {
   PopoverCloseButton,
   Checkbox,
   CheckboxGroup,
+  PopoverFooter,
+  PopoverArrow,
+  Select,
 } from "@chakra-ui/react";
-import { Formik, Form } from "formik";
+import { Formik, Form, Field } from "formik";
 import React, { useState } from "react";
 import { RiUser5Fill, RiFilter2Fill, RiMoreFill } from "react-icons/ri";
 import { GrCurrency, GrSort } from "react-icons/gr";
+import { BiSelectMultiple } from "react-icons/bi";
 import Header from "../../components/Header";
 import { InputField } from "../../components/InputField";
 import NextLink from "next/link";
-import { BsThreeDots } from "react-icons/bs";
 import { BASE_URL } from "../../constants";
 import { useQuery } from "react-query";
 import { client } from "../../utils/api-client";
@@ -40,7 +44,7 @@ import { truncate } from "../../utils/index";
 import ExternalLink from "../../components/ExternalLink";
 
 function serialize(input: string | number, type: string, number: number) {
-  if (input !== undefined) {
+  if (input !== undefined && input !== null) {
     if (type === "string") {
       return [
         `${input.toString().slice(0, number)} ${
@@ -111,6 +115,8 @@ const fields = [
   "orderDate",
   "transaction",
 ];
+
+const sortable = ["_id", "createdAt", "pricePerItem", "updatedAt", "orderDate"];
 
 const fieldConverter = {
   _id: "id",
@@ -340,13 +346,19 @@ const Items = () => {
   const [selected, setSelected] = useState(
     defaultFields.map((field) => field.name)
   );
+  const [sort, setSort] = useState("_id:desc");
+  const [fieldName, fieldOrder] = sort.split(":");
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
   const [selectedOpen, setSelectedOpen] = useState(false);
-  const { status, data, error, isFetching } = useQuery(
-    ["items", page, selected],
+  const { status, data, error } = useQuery(
+    ["items", page, selected, sort],
     () =>
-      client(`${BASE_URL}/items?page=${page}&limit=${limit}&fields=${selected}`)
+      client(
+        `${BASE_URL}/items?page=${page}&limit=${limit}&fields=${selected}&sort=${
+          fieldOrder === "desc" ? "-" : ""
+        }${fieldName}`
+      )
   );
   return (
     <>
@@ -411,12 +423,80 @@ const Items = () => {
                   <MenuItem onClick={() => setFreezeNo(6)}>6</MenuItem>
                 </MenuList>
               </Menu>
-              <Button variant="link" _hover={{ backgroundColor: "gray.200" }}>
+              <Button _hover={{ backgroundColor: "gray.300" }}>
                 <Icon as={RiFilter2Fill} />
               </Button>
-              <Button variant="link" _hover={{ backgroundColor: "gray.200" }}>
-                <Icon as={GrSort} />
-              </Button>
+              <Popover placement="bottom-end">
+                <PopoverTrigger>
+                  <Button _hover={{ backgroundColor: "gray.300" }}>
+                    <Icon as={GrSort} />
+                  </Button>
+                </PopoverTrigger>
+                <Formik
+                  initialValues={{ field: "_id", order: "desc" }}
+                  onSubmit={(values) =>
+                    setSort(`${values.field}:${values.order}`)
+                  }
+                >
+                  {(props) => (
+                    <Form>
+                      <PopoverContent>
+                        <PopoverArrow />
+                        <PopoverHeader>Make selection</PopoverHeader>
+                        <PopoverBody>
+                          <VStack spacing="8px">
+                            <Field
+                              as="select"
+                              placeholder="select option"
+                              name="field"
+                              id="field"
+                              style={{
+                                border:
+                                  "1px solid var(--chakra-colors-gray-400)",
+                                width: "100%",
+                                display: "block",
+                                padding: "6px 6px",
+                                borderRadius: "6px",
+                                textTransform: "capitalize",
+                              }}
+                            >
+                              {sortable.map((el) => (
+                                <option key={el} value={el}>
+                                  {fieldConverter[el]}
+                                </option>
+                              ))}
+                            </Field>
+                            <Field
+                              as="select"
+                              placeholder="select option"
+                              name="order"
+                              style={{
+                                border:
+                                  "1px solid var(--chakra-colors-gray-400)",
+                                width: "100%",
+                                display: "block",
+                                padding: "6px 6px",
+                                borderRadius: "6px",
+                                textTransform: "capitalize",
+                              }}
+                            >
+                              <option value="asc">Ascending</option>
+                              <option value="desc">Descending</option>
+                            </Field>
+                          </VStack>
+                        </PopoverBody>
+                        <PopoverFooter>
+                          <VStack alignItems="stretch">
+                            <Button type="submit" colorScheme="teal">
+                              Submit
+                            </Button>
+                          </VStack>
+                        </PopoverFooter>
+                      </PopoverContent>
+                    </Form>
+                  )}
+                </Formik>
+              </Popover>
               <Popover
                 placement="bottom-end"
                 returnFocusOnClose={false}
@@ -426,26 +506,23 @@ const Items = () => {
                 onOpen={() => setSelectedOpen(true)}
               >
                 <PopoverTrigger>
-                  <Button
-                    variant="link"
-                    _hover={{ backgroundColor: "gray.200" }}
-                  >
-                    <Icon as={BsThreeDots} />
+                  <Button _hover={{ backgroundColor: "gray.300" }}>
+                    <Icon as={BiSelectMultiple} />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent>
-                  <PopoverCloseButton />
-                  <PopoverHeader>Make your selection</PopoverHeader>
-                  <PopoverBody>
-                    <Formik
-                      initialValues={{ checked: selected }}
-                      onSubmit={(values) => {
-                        setSelected(values.checked);
-                        setSelectedOpen(false);
-                      }}
-                    >
-                      {(props) => (
-                        <Form>
+                <Formik
+                  initialValues={{ checked: selected }}
+                  onSubmit={(values) => {
+                    setSelected(values.checked);
+                    setSelectedOpen(false);
+                  }}
+                >
+                  {(props) => (
+                    <Form>
+                      <PopoverContent>
+                        <PopoverCloseButton />
+                        <PopoverHeader>Make your selection</PopoverHeader>
+                        <PopoverBody height="400px" overflow="auto">
                           <CheckboxGroup
                             colorScheme="teal"
                             defaultValue={props.values.checked}
@@ -454,43 +531,62 @@ const Items = () => {
                             }}
                             value={props.values.checked}
                           >
-                            {fieldsCopy.map((field) => (
-                              <Checkbox
-                                border="1px solid var(--chakra-colors-teal-600)"
-                                padding="2px 6px"
-                                value={field.name}
-                                colorScheme="teal"
-                                borderRadius="lg"
-                                textTransform="capitalize"
-                                margin="4px 4px"
-                                key={field.name}
-                                // onChange={(e) => e.target.checked }
-                              >
-                                {field.full}
-                              </Checkbox>
-                            ))}
+                            <VStack alignItems="stretch" spacing="6px">
+                              {fieldsCopy.map((field) => (
+                                <Checkbox
+                                  value={field.name}
+                                  px="20px"
+                                  colorScheme="teal"
+                                  borderRadius="lg"
+                                  textTransform="capitalize"
+                                  key={field.name}
+                                  // onChange={(e) => e.target.checked }
+                                >
+                                  {field.full}
+                                </Checkbox>
+                              ))}
+                            </VStack>
                           </CheckboxGroup>
-                          <Button type="submit" colorScheme="teal">
-                            Submit
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              props.setFieldValue(
-                                "checked",
-                                fieldsCopy.map((field) => field.name)
-                              );
-                              setSelected(
-                                fieldsCopy.map((field) => field.name)
-                              );
-                            }}
-                          >
-                            select all
-                          </Button>
-                        </Form>
-                      )}
-                    </Formik>
-                  </PopoverBody>
-                </PopoverContent>
+                        </PopoverBody>
+                        <PopoverFooter>
+                          <VStack alignItems="stretch">
+                            <Button colorScheme="teal" type="submit">
+                              Submit
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                props.setFieldValue(
+                                  "checked",
+                                  fieldsCopy.map((field) => field.name)
+                                );
+                                setSelected(
+                                  fieldsCopy.map((field) => field.name)
+                                );
+                                setSelectedOpen(false);
+                              }}
+                            >
+                              select all
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                props.setFieldValue(
+                                  "checked",
+                                  defaultFields.map((field) => field.name)
+                                );
+                                setSelected(
+                                  defaultFields.map((field) => field.name)
+                                );
+                                setSelectedOpen(false);
+                              }}
+                            >
+                              Reset to default
+                            </Button>
+                          </VStack>
+                        </PopoverFooter>
+                      </PopoverContent>
+                    </Form>
+                  )}
+                </Formik>
               </Popover>
             </HStack>
           </Box>
@@ -570,9 +666,8 @@ const Items = () => {
                                 backgroundColor="gray.50"
                                 key={index}
                               >
-                                {/* {output} */}
                                 <Tooltip label={fullStr} aria-label="A tooltip">
-                                  {output}
+                                  <span>{output}</span>
                                 </Tooltip>
                               </Td>
                             );
