@@ -42,7 +42,7 @@ import { BASE_URL } from "../../constants";
 import { useQuery } from "react-query";
 import { client } from "../../utils/api-client";
 import { truncate } from "../../utils/index";
-import ExternalLink from "../../components/ExternalLink";
+import FreezeCol from "../../components/FreezeCol";
 
 const fieldStyle = {
   border: "1px solid var(--chakra-colors-gray-200)",
@@ -52,79 +52,6 @@ const fieldStyle = {
   borderRadius: "6px",
   textTransform: "capitalize",
 };
-
-function serialize(input: string | number, type: string, number: number) {
-  if (input !== undefined && input !== null) {
-    if (type === "string") {
-      return [
-        `${input.toString().slice(0, number)} ${
-          input.toString().length >= number ? "..." : ""
-        }`,
-        input,
-      ];
-    } else if (type === "date") {
-      return [
-        new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" }).format(
-          new Date(input)
-        ),
-        new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" }).format(
-          new Date(input)
-        ),
-      ];
-    } else if (type === "usd" || type === "vnd") {
-      return [
-        new Intl.NumberFormat("us-US", {
-          style: "currency",
-          currency: type,
-        }).format(input),
-        new Intl.NumberFormat("us-US", {
-          style: "currency",
-          currency: type,
-        }).format(input),
-      ];
-    } else if (type === "link") {
-      return [
-        <span>
-          <ExternalLink href={input.toString()}>
-            {input.slice(0, number) + "..."}
-          </ExternalLink>
-        </span>,
-        input,
-      ];
-    } else if (type === "percent") {
-      return [input + "%", input + "%"];
-    } else if (type === "kg") {
-      return [input + "kg", input + "kg"];
-    } else if (type === "badge") {
-      return [input, input];
-    } else {
-      return [input, input];
-    }
-  }
-  return ["-", "-"];
-}
-
-const fields = [
-  "_id",
-  "createdAt",
-  "name",
-  "pricePerItem",
-  "quantity",
-  "link",
-  "status",
-  "usShippingFee",
-  "tax",
-  "extraShippingCost",
-  "actWgtPerItem",
-  "website",
-  "itemType",
-  "estWgtPerItem",
-  "customId",
-  "actualCost",
-  "orderAccount",
-  "orderDate",
-  "transaction",
-];
 
 const sortable = ["_id", "createdAt", "pricePerItem", "updatedAt", "orderDate"];
 
@@ -375,7 +302,7 @@ const Items = () => {
   );
   return (
     <>
-      <Header title="Dashboard" />
+      <Header title="Items" />
       <Box
         gridArea="header"
         bg="white"
@@ -426,16 +353,7 @@ const Items = () => {
               <NextLink href="/items/create" passHref>
                 <Button colorScheme="teal">Add items +</Button>
               </NextLink>
-              <Menu>
-                <MenuButton as={Button}>Freeze Columns ({freezeNo})</MenuButton>
-                <MenuList>
-                  <MenuItem onClick={() => setFreezeNo(2)}>2</MenuItem>
-                  <MenuItem onClick={() => setFreezeNo(3)}>3</MenuItem>
-                  <MenuItem onClick={() => setFreezeNo(4)}>4</MenuItem>
-                  <MenuItem onClick={() => setFreezeNo(5)}>5</MenuItem>
-                  <MenuItem onClick={() => setFreezeNo(6)}>6</MenuItem>
-                </MenuList>
-              </Menu>
+              <FreezeCol freezeNo={freezeNo} setFreezeNo={setFreezeNo} />
               <Popover
                 placement="bottom-end"
                 returnFocusOnClose={false}
@@ -600,7 +518,14 @@ const Items = () => {
                 </Formik>
               </Popover>
 
-              <Popover placement="bottom-end">
+              <Popover
+                placement="bottom-end"
+                returnFocusOnClose={false}
+                isOpen={sortOpen}
+                onClose={() => setSortOpen(false)}
+                closeOnBlur={true}
+                onOpen={() => setSortOpen(true)}
+              >
                 <PopoverTrigger>
                   <Button _hover={{ backgroundColor: "gray.300" }}>
                     <Icon as={GrSort} />
@@ -608,9 +533,10 @@ const Items = () => {
                 </PopoverTrigger>
                 <Formik
                   initialValues={{ field: "_id", order: "desc" }}
-                  onSubmit={(values) =>
-                    setSort(`${values.field}:${values.order}`)
-                  }
+                  onSubmit={(values) => {
+                    setSort(`${values.field}:${values.order}`);
+                    setSortOpen(false);
+                  }}
                 >
                   {(props) => (
                     <Form>
