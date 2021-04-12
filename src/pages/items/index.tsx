@@ -33,59 +33,15 @@ import {
 import { Formik, Form, Field } from "formik";
 import React, { useState } from "react";
 import { RiUser5Fill, RiFilter2Fill, RiMoreFill } from "react-icons/ri";
-import { GrCurrency, GrSort } from "react-icons/gr";
 import { BiSelectMultiple } from "react-icons/bi";
 import Header from "../../components/Header";
 import { InputField } from "../../components/InputField";
 import NextLink from "next/link";
-import { BASE_URL } from "../../constants";
+import { BASE_URL, ITEM_FIELD_MAP, SELECT_STYLE } from "../../constants";
 import { useQuery } from "react-query";
 import { client } from "../../utils/api-client";
 import { truncate } from "../../utils/index";
-import FreezeCol from "../../components/FreezeCol";
-
-const fieldStyle = {
-  border: "1px solid var(--chakra-colors-gray-200)",
-  width: "100%",
-  display: "block",
-  padding: "8px 8px",
-  borderRadius: "6px",
-  textTransform: "capitalize",
-};
-
-const sortable = ["_id", "createdAt", "pricePerItem", "updatedAt", "orderDate"];
-
-const fieldConverter = {
-  _id: "id",
-  createdAt: "created at",
-  name: "name",
-  link: "link",
-  pricePerItem: "price per item",
-  actPricePerItem: "actual price per item",
-  quantity: "quantity",
-  tax: "tax",
-  usShippingFee: "us shipping fee",
-  extraShippingCost: "extra shipping cost",
-  estWgtPerItem: "estimated weight/item",
-  actWgtPerItem: "actual weight/item",
-  actualCost: "actual cost",
-  trackingLink: "tracking link",
-  invoiceLink: "invoice link",
-  orderDate: "order date",
-  arrvlAtWarehouseDate: "arrived at warehouse",
-  customerRcvDate: "customer reception",
-  returnDate: "return date",
-  returnArrvlDate: "return arrival",
-  notes: "notes",
-  status: "status",
-  website: "website",
-  commissionRate: "comission rate",
-  itemType: "item type",
-  orderAccount: "order account",
-  warehouse: "warehouse",
-  transaction: "transaction",
-  updatedAt: "updated at",
-};
+import { FreezeCol, Sort } from "../../components/Options";
 
 const defaultFields = [
   {
@@ -289,7 +245,6 @@ const Items = () => {
   const [limit] = useState(8);
   const [selectedOpen, setSelectedOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [sortOpen, setSortOpen] = useState(false);
   const [filter, setFilter] = useState("");
   const { status, data, error } = useQuery(
     ["items", page, selected, sort, filter],
@@ -429,7 +384,7 @@ const Items = () => {
                             <Field
                               as="select"
                               placeholder="select option"
-                              style={fieldStyle}
+                              style={SELECT_STYLE}
                               id="warehouse"
                               name="warehouse"
                             >
@@ -444,7 +399,7 @@ const Items = () => {
                             <Field
                               as="select"
                               placeholder="select option"
-                              style={fieldStyle}
+                              style={SELECT_STYLE}
                               name="status"
                               id="status"
                             >
@@ -474,7 +429,7 @@ const Items = () => {
                             <Field
                               as="select"
                               placeholder="select option"
-                              style={fieldStyle}
+                              style={SELECT_STYLE}
                               name="website"
                               id="website"
                             >
@@ -518,85 +473,7 @@ const Items = () => {
                 </Formik>
               </Popover>
 
-              <Popover
-                placement="bottom-end"
-                returnFocusOnClose={false}
-                isOpen={sortOpen}
-                onClose={() => setSortOpen(false)}
-                closeOnBlur={true}
-                onOpen={() => setSortOpen(true)}
-              >
-                <PopoverTrigger>
-                  <Button _hover={{ backgroundColor: "gray.300" }}>
-                    <Icon as={GrSort} />
-                  </Button>
-                </PopoverTrigger>
-                <Formik
-                  initialValues={{ field: "_id", order: "desc" }}
-                  onSubmit={(values) => {
-                    setSort(`${values.field}:${values.order}`);
-                    setSortOpen(false);
-                  }}
-                >
-                  {(props) => (
-                    <Form>
-                      <PopoverContent>
-                        <PopoverArrow />
-                        <PopoverHeader>Make selection</PopoverHeader>
-                        <PopoverBody>
-                          <VStack spacing="8px">
-                            <Field
-                              as="select"
-                              placeholder="select option"
-                              name="field"
-                              id="field"
-                              style={{
-                                border:
-                                  "1px solid var(--chakra-colors-gray-400)",
-                                width: "100%",
-                                display: "block",
-                                padding: "6px 6px",
-                                borderRadius: "6px",
-                                textTransform: "capitalize",
-                              }}
-                            >
-                              {sortable.map((el) => (
-                                <option key={el} value={el}>
-                                  {fieldConverter[el]}
-                                </option>
-                              ))}
-                            </Field>
-                            <Field
-                              as="select"
-                              placeholder="select option"
-                              name="order"
-                              style={{
-                                border:
-                                  "1px solid var(--chakra-colors-gray-400)",
-                                width: "100%",
-                                display: "block",
-                                padding: "6px 6px",
-                                borderRadius: "6px",
-                                textTransform: "capitalize",
-                              }}
-                            >
-                              <option value="asc">Ascending</option>
-                              <option value="desc">Descending</option>
-                            </Field>
-                          </VStack>
-                        </PopoverBody>
-                        <PopoverFooter>
-                          <VStack alignItems="stretch">
-                            <Button type="submit" colorScheme="teal">
-                              Submit
-                            </Button>
-                          </VStack>
-                        </PopoverFooter>
-                      </PopoverContent>
-                    </Form>
-                  )}
-                </Formik>
-              </Popover>
+              <Sort setSort={setSort} />
               <Popover
                 placement="bottom-end"
                 returnFocusOnClose={false}
@@ -718,7 +595,7 @@ const Items = () => {
                               left={200 * index}
                               textTransform="capitalize"
                             >
-                              {fieldConverter[field]}
+                              {ITEM_FIELD_MAP[field]}
                             </Th>
                           );
                         } else {
@@ -728,7 +605,7 @@ const Items = () => {
                               backgroundColor="gray.200"
                               textTransform="capitalize"
                             >
-                              {fieldConverter[field]}
+                              {ITEM_FIELD_MAP[field]}
                             </Th>
                           );
                         }
