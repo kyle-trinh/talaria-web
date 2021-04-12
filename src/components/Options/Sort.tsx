@@ -19,9 +19,10 @@ const sortable = ["_id", "createdAt", "pricePerItem", "updatedAt", "orderDate"];
 
 interface SortProps {
   setSort: Dispatch<SetStateAction<string>>;
+  map: any;
 }
 
-export default function Sort({ setSort }: SortProps) {
+export default function Sort({ setSort, map }: SortProps) {
   const [sortOpen, setSortOpen] = React.useState(false);
   return (
     <Popover
@@ -60,7 +61,7 @@ export default function Sort({ setSort }: SortProps) {
                   >
                     {sortable.map((el) => (
                       <option key={el} value={el}>
-                        {ITEM_FIELD_MAP[el]}
+                        {map[el]}
                       </option>
                     ))}
                   </Field>

@@ -24,33 +24,4 @@ function truncate(str: string, num: number, type: string) {
   return ["-", "-"];
 }
 
-const dateFields = [
-  "createdAt",
-  "updatedAt",
-  "orderDate",
-  "arrvlAtWarehouseDate",
-  "customerRcvDate",
-  "returnArrvlDate",
-  "returnDate",
-];
-
-const moneyFields = ["usShippingFee", "extraShippingCost", "pricePerItem"];
-
-const linkFields = ["link"];
-
-const fields = [
-  {
-    name: "_id",
-    type: "string",
-  },
-  {
-    name: "createdAt",
-    type: "date",
-  },
-  {
-    name: "name",
-    type: "string",
-  },
-];
-
 export { truncate };

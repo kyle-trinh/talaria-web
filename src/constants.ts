@@ -1,5 +1,128 @@
 const BASE_URL = "http://localhost:4444/api/v1";
 
+const ITEM_FIELD_MAP_2 = {
+  _id: {
+    type: "internalLink",
+    full: "id",
+  },
+  createdAt: {
+    type: "string",
+    full: "created at",
+  },
+  name: {
+    type: "string",
+    full: "name",
+  },
+  link: {
+    type: "externalLink",
+    full: "link",
+  },
+  pricePerItem: {
+    type: "string",
+    full: "price / item",
+  },
+  actPricePerItem: {
+    type: "string",
+    full: "actual price / item",
+  },
+  quantity: {
+    type: "number",
+    full: "quantity",
+  },
+  tax: {
+    type: "string",
+    full: "tax",
+  },
+  usShippingFee: {
+    type: "string",
+    full: "us shipping fee",
+  },
+
+  extraShippingCost: {
+    type: "string",
+    full: "extra shipping cost",
+  },
+
+  estWgtPerItem: {
+    type: "string",
+    full: "estimated weight / item",
+  },
+  actWgtPerItem: {
+    type: "string",
+    full: "actual weight / item",
+  },
+  actualCost: {
+    type: "string",
+    full: "actual cost",
+  },
+  trackingLink: {
+    type: "externalLink",
+    full: "tracking link",
+  },
+  invoiceLink: {
+    type: "string",
+    full: "invoice link",
+  },
+
+  orderDate: {
+    type: "string",
+    full: "order date",
+  },
+  arrvlAtWarehouseDate: {
+    type: "string",
+    full: "arrived at warehouse",
+  },
+
+  customerRcvDate: {
+    type: "string",
+    full: "customer received",
+  },
+  returnDate: {
+    type: "string",
+    full: "return date",
+  },
+  returnArrvlDate: {
+    type: "string",
+    full: "return arrival",
+  },
+  notes: {
+    type: "string",
+    full: "notes",
+  },
+  status: {
+    type: "string",
+    full: "status",
+  },
+  website: {
+    type: "string",
+    full: "website",
+  },
+  commissionRate: {
+    type: "string",
+    full: "commission rate",
+  },
+  itemType: {
+    type: "string",
+    full: "item type",
+  },
+  orderAccount: {
+    type: "string",
+    full: "order account",
+  },
+  warehouse: {
+    type: "string",
+    full: "warehouse",
+  },
+  transaction: {
+    type: "string",
+    full: "transaction",
+  },
+  updatedAt: {
+    type: "string",
+    full: "updated at",
+  },
+};
+
 const ITEM_FIELD_MAP = {
   _id: "id",
   createdAt: "created at",
@@ -41,4 +164,95 @@ const SELECT_STYLE = {
   textTransform: "capitalize",
 };
 
-export { BASE_URL, ITEM_FIELD_MAP, SELECT_STYLE };
+export interface I_Item {
+  _id: string;
+  createdAt: string;
+  name: string;
+  link: string;
+  pricePerItem: string;
+  actPricePerItem: string;
+  quantity: string;
+  tax: string;
+  usShippingFee: string;
+  extraShippingCost: string;
+  estWgtPerItem: string;
+  actWgtPerItem: string;
+  actualCost: string;
+  trackingLink: string;
+  invoiceLink: string;
+  orderDate: string;
+  arrvlAtWarehouseDate: string;
+  customerRcvDate: string;
+  returnDate: string;
+  returnArrvlDate: string;
+  notes: string;
+  status: string;
+  website: string;
+  commissionRate: string;
+  itemType: string;
+  orderAccount: string;
+  warehouse: string;
+  transaction: string;
+  updatedAt: string;
+}
+
+const ITEM_FIELDS = [
+  "_id",
+  "createdAt",
+  "name",
+  "link",
+  "pricePerItem",
+  "actPricePerItem",
+  "quantity",
+  "tax",
+  "usShippingFee",
+  "extraShippingCost",
+  "estWgtPerItem",
+  "actWgtPerItem",
+  "actualCost",
+  "trackingLink",
+  "invoiceLink",
+  "orderDate",
+  "arrvlAtWarehouseDate",
+  "customerRcvDate",
+  "returnDate",
+  "returnArrvlDate",
+  "notes",
+  "status",
+  "website",
+  "commissionRate",
+  "itemType",
+  "orderAccount",
+  "warehouse",
+  "transaction",
+  "updatedAt",
+];
+
+const ITEM_SORTABLE = [
+  "_id",
+  "createdAt",
+  "pricePerItem",
+  "updatedAt",
+  "orderDate",
+];
+
+const ITEM_DEFAULT = [
+  "_id",
+  "createdAt",
+  "name",
+  "link",
+  "pricePerItem",
+  "quantity",
+  "tax",
+  "usShippingFee",
+];
+
+export {
+  BASE_URL,
+  ITEM_FIELD_MAP,
+  SELECT_STYLE,
+  ITEM_SORTABLE,
+  ITEM_FIELD_MAP_2,
+  ITEM_FIELDS,
+  ITEM_DEFAULT,
+};
