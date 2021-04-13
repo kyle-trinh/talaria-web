@@ -16,8 +16,11 @@ import {
   MenuItem,
   IconButton,
   Tooltip,
+  FormControl,
+  FormLabel,
+  VStack,
 } from "@chakra-ui/react";
-import { Formik, Form } from "formik";
+import { Formik, Form, Field } from "formik";
 import React, { useState } from "react";
 import { RiUser5Fill, RiMoreFill } from "react-icons/ri";
 import Header from "../../components/Header";
@@ -28,12 +31,126 @@ import {
   ITEM_FIELD_MAP,
   ITEM_DEFAULT,
   ITEM_FIELD_MAP_2,
+  ITEM_FIELDS,
+  SELECT_STYLE,
 } from "../../constants";
 import { useQuery } from "react-query";
 import { client } from "../../utils/api-client";
 import { truncate } from "../../utils/index";
 import { FreezeCol, Sort, LimitField } from "../../components/Options";
 import Filter from "../../components/Options/Filter";
+export interface I_Item {
+  _id: string;
+  createdAt: string;
+  name: string;
+  link: string;
+  pricePerItem: string;
+  actPricePerItem: string;
+  quantity: string;
+  tax: string;
+  usShippingFee: string;
+  extraShippingCost: string;
+  estWgtPerItem: string;
+  actWgtPerItem: string;
+  actualCost: string;
+  trackingLink: string;
+  invoiceLink: string;
+  orderDate: string;
+  arrvlAtWarehouseDate: string;
+  customerRcvDate: string;
+  returnDate: string;
+  returnArrvlDate: string;
+  notes: string;
+  status: string;
+  website: string;
+  commissionRate: string;
+  itemType: string;
+  orderAccount: string;
+  warehouse: string;
+  transaction: string;
+  updatedAt: string;
+}
+
+const FilterInput = () => (
+  <VStack spacing="8px">
+    <InputField
+      name="pricePerItemFrom"
+      label="Price From"
+      type="number"
+      placeholder="$0"
+    />
+    <InputField
+      name="pricePerItemTo"
+      label="To"
+      type="number"
+      placeholder="$999"
+    />
+    <InputField
+      name="createdAtFrom"
+      label="Created at from"
+      type="date"
+      placeholder="created at"
+    />
+    <InputField
+      name="createdAtTo"
+      label="To"
+      type="date"
+      placeholder="created at to"
+    />
+    <FormControl>
+      <FormLabel htmlFor="warehouse">Warehouse</FormLabel>
+      <Field
+        as="select"
+        placeholder="select option"
+        style={SELECT_STYLE}
+        id="warehouse"
+        name="warehouse"
+      >
+        <option value="">Select an option</option>
+        <option value="60528fdd27ae2f0b7f0d843c">UNIHAN 1909 LINH NG</option>
+      </Field>
+    </FormControl>
+    <FormControl>
+      <FormLabel htmlFor="warehouse">Status</FormLabel>
+      <Field
+        as="select"
+        placeholder="select option"
+        style={SELECT_STYLE}
+        name="status"
+        id="status"
+      >
+        <option value="">Select one option</option>
+        <option value="not-yet-ordered">Not Ordered Yet</option>
+        <option value="ordered">Ordered</option>
+        <option value="on-the-way-to-warehouse">On the way to Warehouse</option>
+        <option value="on-the-way-to-viet-nam">On the way to VN</option>
+        <option value="arrived-at-viet-nam">Arrived at VN</option>
+        <option value="done">Done</option>
+        <option value="returning">Returning</option>
+        <option value="returned">Returned</option>
+      </Field>
+    </FormControl>
+    <FormControl>
+      <FormLabel htmlFor="website">Order website</FormLabel>
+      <Field
+        as="select"
+        placeholder="select option"
+        style={SELECT_STYLE}
+        name="website"
+        id="website"
+      >
+        <option value="">Choose one</option>
+        <option value="amazon">Amazon</option>
+        <option value="sephora">Sephora</option>
+        <option value="ebay">Ebay</option>
+        <option value="bestbuy">Best buy</option>
+        <option value="costco">Costco</option>
+        <option value="walmart">Walmart</option>
+        <option value="assisting">Others</option>
+      </Field>
+    </FormControl>
+  </VStack>
+);
 
 const Items = () => {
   const [freezeNo, setFreezeNo] = useState(4);
@@ -106,15 +223,35 @@ const Items = () => {
                 <Button colorScheme="teal">Add items +</Button>
               </NextLink>
               <FreezeCol freezeNo={freezeNo} setFreezeNo={setFreezeNo} />
-              <Filter setFilter={setFilter} />
-              <Sort setSort={setSort} map={ITEM_FIELD_MAP} />
-              <LimitField selected={selected} setSelected={setSelected} />
+              <Filter
+                setFilter={setFilter}
+                defaultValues={{
+                  pricePerItemFrom: "",
+                  pricePerItemTo: "",
+                  createdAtFrom: "",
+                  createdAtTo: "",
+                  warehouse: "",
+                  status: "",
+                  website: "",
+                  orderAccount: "",
+                }}
+              >
+                <FilterInput />
+              </Filter>
+              <Sort setSort={setSort} map={ITEM_FIELD_MAP_2} />
+              <LimitField
+                selected={selected}
+                setSelected={setSelected}
+                fields={ITEM_FIELDS}
+                defaults={ITEM_DEFAULT}
+                map={ITEM_FIELD_MAP_2}
+              />
             </HStack>
           </Box>
           {status === "loading" ? (
             <Spinner position="absolute" top="50%" left="50%" />
           ) : status === "error" ? (
-            <span>{error.message}</span>
+            <span>{(error as Error).message}</span>
           ) : (
             <Box marginTop={8} w="100%">
               <Box
@@ -139,7 +276,7 @@ const Items = () => {
                               left={200 * index}
                               textTransform="capitalize"
                             >
-                              {ITEM_FIELD_MAP[field]}
+                              {ITEM_FIELD_MAP[field as keyof I_Item]}
                             </Th>
                           );
                         } else {
@@ -149,7 +286,7 @@ const Items = () => {
                               backgroundColor="gray.200"
                               textTransform="capitalize"
                             >
-                              {ITEM_FIELD_MAP[field]}
+                              {ITEM_FIELD_MAP[field as keyof I_Item]}
                             </Th>
                           );
                         }
@@ -169,13 +306,13 @@ const Items = () => {
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {data.data.data.map((single: IItem & { _id: string }) => (
+                    {data.data.data.map((single: I_Item) => (
                       <Tr key={single._id}>
                         {selected.map((field, index) => {
                           const [output, fullStr] = truncate(
-                            single[field],
+                            single[field as keyof I_Item],
                             16,
-                            ITEM_FIELD_MAP_2[field].type
+                            ITEM_FIELD_MAP_2[field as keyof I_Item].type
                           );
                           if (index < freezeNo) {
                             return (

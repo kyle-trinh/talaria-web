@@ -17,12 +17,30 @@ import React from "react";
 import { BiSelectMultiple } from "react-icons/bi";
 import { ITEM_FIELDS, ITEM_FIELD_MAP_2, ITEM_DEFAULT } from "../../constants";
 
+interface fieldType {
+  full: string;
+  type: string;
+}
+
+interface mapType {
+  [key: string]: fieldType;
+}
+
 interface LimitFieldProps {
   selected: Array<string>;
   setSelected: any;
+  fields: Array<string>;
+  defaults: Array<string>;
+  map: mapType;
 }
 
-export default function LimitField({ selected, setSelected }: LimitFieldProps) {
+export default function LimitField({
+  selected,
+  setSelected,
+  fields,
+  defaults,
+  map,
+}: LimitFieldProps) {
   const [selectedOpen, setSelectedOpen] = React.useState(false);
   return (
     <Popover
@@ -70,7 +88,7 @@ export default function LimitField({ selected, setSelected }: LimitFieldProps) {
                         key={field}
                         // onChange={(e) => e.target.checked }
                       >
-                        {ITEM_FIELD_MAP_2[field].full}
+                        {map[field].full}
                       </Checkbox>
                     ))}
                   </VStack>
@@ -83,17 +101,17 @@ export default function LimitField({ selected, setSelected }: LimitFieldProps) {
                   </Button>
                   <Button
                     onClick={() => {
-                      props.setFieldValue("checked", ITEM_FIELDS);
-                      setSelected(ITEM_FIELDS);
+                      props.setFieldValue("checked", fields);
+                      setSelected(fields);
                       setSelectedOpen(false);
                     }}
                   >
-                    select all
+                    Select All
                   </Button>
                   <Button
                     onClick={() => {
-                      props.setFieldValue("checked", ITEM_DEFAULT);
-                      setSelected(ITEM_DEFAULT);
+                      props.setFieldValue("checked", defaults);
+                      setSelected(defaults);
                       setSelectedOpen(false);
                     }}
                   >

@@ -16,10 +16,18 @@ import { GrSort } from "react-icons/gr";
 import { ITEM_FIELD_MAP, SELECT_STYLE } from "../../constants";
 
 const sortable = ["_id", "createdAt", "pricePerItem", "updatedAt", "orderDate"];
+interface fieldType {
+  full: string;
+  type: string;
+}
+
+interface mapType {
+  [key: string]: fieldType;
+}
 
 interface SortProps {
   setSort: Dispatch<SetStateAction<string>>;
-  map: any;
+  map: mapType;
 }
 
 export default function Sort({ setSort, map }: SortProps) {
@@ -61,7 +69,7 @@ export default function Sort({ setSort, map }: SortProps) {
                   >
                     {sortable.map((el) => (
                       <option key={el} value={el}>
-                        {map[el]}
+                        {map[el].full}
                       </option>
                     ))}
                   </Field>
