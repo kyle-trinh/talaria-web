@@ -39,6 +39,8 @@ import { client } from "../../utils/api-client";
 import { truncate } from "../../utils/index";
 import { FreezeCol, Sort, LimitField } from "../../components/Options";
 import Filter from "../../components/Options/Filter";
+import { TableCeil } from "../../components/styles/Table";
+import ContentHeader from "../../components/ContentHeader";
 export interface I_Item {
   _id: string;
   createdAt: string;
@@ -172,23 +174,7 @@ const Items = () => {
   return (
     <>
       <Header title="Items" />
-      <Box
-        gridArea="header"
-        bg="white"
-        borderTopLeftRadius="2xl"
-        borderTopRightRadius="xl"
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        padding="0 40px"
-      >
-        <Box textStyle="title" as="h1">
-          Items
-        </Box>
-        <Box>
-          <Icon as={RiUser5Fill} w={45} h={45} color="gray" />
-        </Box>
-      </Box>
+      <ContentHeader title="Items" />
       <Box
         gridArea="main"
         bg="white"
@@ -265,31 +251,40 @@ const Items = () => {
                   <Thead>
                     <Tr>
                       {selected.map((field, index) => {
-                        if (index < freezeNo) {
-                          return (
-                            <Th
-                              key={index}
-                              position="sticky"
-                              backgroundColor="gray.300"
-                              maxW={200}
-                              minW={200}
-                              left={200 * index}
-                              textTransform="capitalize"
-                            >
-                              {ITEM_FIELD_MAP[field as keyof I_Item]}
-                            </Th>
-                          );
-                        } else {
-                          return (
-                            <Th
-                              key={index}
-                              backgroundColor="gray.200"
-                              textTransform="capitalize"
-                            >
-                              {ITEM_FIELD_MAP[field as keyof I_Item]}
-                            </Th>
-                          );
-                        }
+                        return (
+                          <TableCeil
+                            key={index}
+                            index={index}
+                            freezeNo={freezeNo}
+                          >
+                            {ITEM_FIELD_MAP[field as keyof I_Item]}
+                          </TableCeil>
+                        );
+                        // if (index < freezeNo) {
+                        //   return (
+                        //     <Th
+                        //       key={index}
+                        //       position="sticky"
+                        //       backgroundColor="gray.300"
+                        //       maxW={200}
+                        //       minW={200}
+                        //       left={200 * index}
+                        //       textTransform="capitalize"
+                        //     >
+                        //       {ITEM_FIELD_MAP[field as keyof I_Item]}
+                        //     </Th>
+                        //   );
+                        // } else {
+                        //   return (
+                        //     <Th
+                        //       key={index}
+                        //       backgroundColor="gray.200"
+                        //       textTransform="capitalize"
+                        //     >
+                        //       {ITEM_FIELD_MAP[field as keyof I_Item]}
+                        //     </Th>
+                        //   );
+                        // }
                       })}
                       <Th
                         right={0}

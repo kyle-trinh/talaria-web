@@ -32,6 +32,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           templateAreas="'sidebar header' 'sidebar main'"
           borderRadius="xl"
           boxShadow="xl"
+          overflowY="auto"
         >
           <Sidebar />
           {children}
