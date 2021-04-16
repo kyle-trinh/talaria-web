@@ -22,7 +22,7 @@ import {
 } from "@chakra-ui/react";
 import { Formik, Form, Field } from "formik";
 import React, { useState } from "react";
-import { RiUser5Fill, RiMoreFill } from "react-icons/ri";
+import { RiMoreFill } from "react-icons/ri";
 import Header from "../../components/Header";
 import { InputField } from "../../components/InputField";
 import NextLink from "next/link";
@@ -34,7 +34,12 @@ import {
   ITEM_FIELDS,
   SELECT_STYLE,
 } from "../../constants";
-import { useQuery } from "react-query";
+import {
+  useQuery,
+  useMutation,
+  QueryClient,
+  useQueryClient,
+} from "react-query";
 import { client } from "../../utils/api-client";
 import { truncate } from "../../utils/index";
 import { FreezeCol, Sort, LimitField } from "../../components/Options";
@@ -170,6 +175,21 @@ const Items = () => {
           fieldOrder === "desc" ? "-" : ""
         }${fieldName}${filter && `&${filter}`}`
       )
+  );
+
+  const queryClient = useQueryClient();
+
+  const { mutate } = useMutation(
+    (data: string) =>
+      client(`${BASE_URL}/items/${data}`, {
+        method: "DELETE",
+        credentials: "include",
+      }),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["items", page, selected, sort, filter]);
+      },
+    }
   );
   return (
     <>
@@ -349,7 +369,14 @@ const Items = () => {
                             <MenuList>
                               <MenuItem>View details</MenuItem>
                               <MenuItem>Edit</MenuItem>
-                              <MenuItem>Delete</MenuItem>
+                              <MenuItem
+                                onClick={() => {
+                                  console.log("CLICKED");
+                                  mutate(single._id);
+                                }}
+                              >
+                                Delete
+                              </MenuItem>
                               <MenuItem>Charge</MenuItem>
                             </MenuList>
                           </Menu>
