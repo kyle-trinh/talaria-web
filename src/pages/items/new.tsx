@@ -3,6 +3,9 @@ import ContentHeader from "../../components/ContentHeader";
 import Header from "../../components/Header";
 import ContentBody from "../../components/styles/ContentBody";
 import {
+  Alert,
+  AlertIcon,
+  AlertTitle,
   Box,
   Button,
   FormControl,
@@ -68,12 +71,23 @@ export default function NewItem() {
               notes: "",
             }}
             onSubmit={(values) => {
-              console.log(values);
               mutate(values);
             }}
           >
             {(props) => (
               <Form>
+                {isError && (
+                  <Alert status="error" mb="16px">
+                    <AlertIcon />
+                    <AlertTitle mr={2}>{(error as Error).message}</AlertTitle>
+                  </Alert>
+                )}
+                {isSuccess && (
+                  <Alert status="success">
+                    <AlertIcon />
+                    <AlertTitle mr={2}>Item created! Redirecting...</AlertTitle>
+                  </Alert>
+                )}
                 <Grid
                   gridTemplateColumns="repeat(2, 1fr)"
                   gridGap="24px"

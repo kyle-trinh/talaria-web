@@ -205,7 +205,7 @@ const Items = () => {
               </Formik>
             </Box>
             <HStack spacing={2} align="stretch">
-              <NextLink href="/items/create" passHref>
+              <NextLink href="/items/new" passHref>
                 <Button colorScheme="teal">Add items +</Button>
               </NextLink>
               <FreezeCol freezeNo={freezeNo} setFreezeNo={setFreezeNo} />
