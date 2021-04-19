@@ -29,10 +29,13 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
-  propNames,
+  Skeleton,
+  Alert,
+  AlertIcon,
+  AlertTitle,
 } from "@chakra-ui/react";
 import { Formik, Form, Field } from "formik";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { RiMoreFill } from "react-icons/ri";
 import Header from "../../components/Header";
 import { InputField } from "../../components/InputField";
@@ -175,10 +178,13 @@ const LoadingLayout = () => (
         {ITEM_DEFAULT.map((field, index) => {
           return (
             <Td key={index}>
-              <Progress colorScheme="gray" size="lg" isIndeterminate />
+              <Skeleton height="16px" />
             </Td>
           );
         })}
+        <Td right={0} position="sticky" maxW="100px" minW="100px" bg="gray.50">
+          <Icon as={IconButton} />
+        </Td>
       </Tr>
     ))}
   </>
@@ -192,6 +198,7 @@ const Items = () => {
   const [limit] = useState(8);
   const [filter, setFilter] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const currentItem = useRef("");
   const { status, data, error } = useQuery(
     ["items", page, selected, sort, filter],
     () =>
@@ -213,6 +220,26 @@ const Items = () => {
     {
       onSuccess: () => {
         queryClient.invalidateQueries(["items", page, selected, sort, filter]);
+      },
+    }
+  );
+
+  const {
+    mutate: charge,
+    error: chargeError,
+    isError: isChargeError,
+    isLoading: isChargeLoading,
+    reset: resetCharge,
+  } = useMutation(
+    (data: { id: string; accountId: string }) =>
+      client(`${BASE_URL}/items/${data.id}/${data.accountId}`, {
+        method: "PATCH",
+        credentials: "include",
+      }),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["items", page, selected, sort, filter]);
+        onClose();
       },
     }
   );
@@ -287,7 +314,7 @@ const Items = () => {
           <Box marginTop={8} w="100%">
             <Box
               position="relative"
-              overflow="auto hidden"
+              overflow={`${selected.length > 8 ? "auto" : "hidden"} hidden`}
               whiteSpace="nowrap"
               minH="500px"
               fontSize="14px"
@@ -412,32 +439,62 @@ const Items = () => {
                                   Delete
                                 </MenuItem>
                                 <>
-                                  <MenuItem onClick={onOpen}>Charge</MenuItem>
+                                  <MenuItem
+                                    onClick={() => {
+                                      currentItem.current = single._id;
+                                      onOpen();
+                                    }}
+                                  >
+                                    Charge
+                                  </MenuItem>
                                   <Modal
                                     isOpen={isOpen}
-                                    onClose={onClose}
+                                    onClose={() => {
+                                      onClose();
+                                      resetCharge();
+                                    }}
                                     isCentered
                                   >
                                     <ModalOverlay />
-                                    <ModalContent>
-                                      <ModalHeader>Choose accounts</ModalHeader>
-                                      <ModalCloseButton />
-                                      <ModalBody>
-                                        <Formik
-                                          initialValues={{ accountId: "" }}
-                                          onSubmit={() =>
-                                            console.log("clicked")
-                                          }
-                                        >
-                                          {(props) => (
-                                            <Form>
+                                    <Formik
+                                      initialValues={{ accountId: "" }}
+                                      onSubmit={(values) => {
+                                        charge({
+                                          ...values,
+                                          id: currentItem.current,
+                                        });
+                                        console.log(currentItem.current);
+                                        // onClose();
+                                      }}
+                                    >
+                                      {(props) => (
+                                        <Form>
+                                          <ModalContent>
+                                            <ModalHeader>
+                                              Choose accounts
+                                            </ModalHeader>
+                                            <ModalCloseButton />
+                                            <ModalBody>
+                                              {isChargeError && (
+                                                <Alert status="error">
+                                                  <AlertIcon />
+                                                  <AlertTitle mr={2}>
+                                                    {
+                                                      (chargeError as Error)
+                                                        .message
+                                                    }
+                                                  </AlertTitle>
+                                                </Alert>
+                                              )}
                                               <FormControl>
-                                                <FormLabel htmlFor="accountId">
+                                                <FormLabel
+                                                  htmlFor={`accountId-${single._id}`}
+                                                >
                                                   Account
                                                 </FormLabel>
                                                 <Select
                                                   placeholder="Select option"
-                                                  id="accountId"
+                                                  id={`accountId-${single._id}`}
                                                   name="accountId"
                                                   value={props.values.accountId}
                                                   onChange={(e) =>
@@ -462,16 +519,23 @@ const Items = () => {
                                                   ))}
                                                 </Select>
                                               </FormControl>
-                                            </Form>
-                                          )}
-                                        </Formik>
-                                      </ModalBody>
-                                      <ModalFooter>
-                                        <Button colorScheme="blue">
-                                          Charge
-                                        </Button>
-                                      </ModalFooter>
-                                    </ModalContent>
+                                            </ModalBody>
+                                            <ModalFooter>
+                                              <Button
+                                                colorScheme="blue"
+                                                type="submit"
+                                                isLoading={isChargeLoading}
+                                                onClick={() =>
+                                                  console.log("qwe")
+                                                }
+                                              >
+                                                Charge
+                                              </Button>
+                                            </ModalFooter>
+                                          </ModalContent>
+                                        </Form>
+                                      )}
+                                    </Formik>
                                   </Modal>
                                 </>
                               </MenuList>
@@ -500,27 +564,32 @@ const Items = () => {
               </Table>
             </Box>
 
-            {status === "loading" ? null : (
-              <HStack alignItems="center" justifyContent="flex-end" mt="16px">
-                <Button
-                  disabled={page === 1}
-                  colorScheme="teal"
-                  onClick={() => setPage((p) => p - 1)}
-                >
-                  Prev
-                </Button>
-                <p>
-                  {page} of {Math.ceil(data.data.totalCount / limit)}
-                </p>
-                <Button
-                  colorScheme="teal"
-                  disabled={page === Math.ceil(data.data.totalCount / limit)}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  Next
-                </Button>
-              </HStack>
-            )}
+            <HStack alignItems="center" justifyContent="flex-end" mt="16px">
+              <Button
+                disabled={page === 1}
+                colorScheme="teal"
+                onClick={() => setPage((p) => p - 1)}
+              >
+                Prev
+              </Button>
+              <p>
+                {page} of{" "}
+                {status === "loading"
+                  ? "X"
+                  : Math.ceil(data.data.totalCount / limit)}
+              </p>
+              <Button
+                colorScheme="teal"
+                disabled={
+                  status === "loading"
+                    ? false
+                    : page === Math.ceil(data.data.totalCount / limit)
+                }
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Next
+              </Button>
+            </HStack>
           </Box>
           {/* )} */}
         </Box>

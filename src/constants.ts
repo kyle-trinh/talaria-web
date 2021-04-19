@@ -243,7 +243,7 @@ const ITEM_DEFAULT = [
   "link",
   "pricePerItem",
   "quantity",
-  "tax",
+  "actualCost",
   "website",
 ];
 
