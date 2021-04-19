@@ -10,6 +10,7 @@ import {
   Th,
   Td,
   Spinner,
+  Select,
   Menu,
   MenuButton,
   MenuList,
@@ -20,6 +21,15 @@ import {
   FormLabel,
   VStack,
   Progress,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  propNames,
 } from "@chakra-ui/react";
 import { Formik, Form, Field } from "formik";
 import React, { useState } from "react";
@@ -34,13 +44,9 @@ import {
   ITEM_FIELD_MAP_2,
   ITEM_FIELDS,
   SELECT_STYLE,
+  ACCOUNTS,
 } from "../../constants";
-import {
-  useQuery,
-  useMutation,
-  QueryClient,
-  useQueryClient,
-} from "react-query";
+import { useQuery, useMutation, useQueryClient } from "react-query";
 import { client } from "../../utils/api-client";
 import { truncate } from "../../utils/index";
 import { FreezeCol, Sort, LimitField } from "../../components/Options";
@@ -185,6 +191,7 @@ const Items = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
   const [filter, setFilter] = useState("");
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const { status, data, error } = useQuery(
     ["items", page, selected, sort, filter],
     () =>
@@ -404,7 +411,69 @@ const Items = () => {
                                 >
                                   Delete
                                 </MenuItem>
-                                <MenuItem>Charge</MenuItem>
+                                <>
+                                  <MenuItem onClick={onOpen}>Charge</MenuItem>
+                                  <Modal
+                                    isOpen={isOpen}
+                                    onClose={onClose}
+                                    isCentered
+                                  >
+                                    <ModalOverlay />
+                                    <ModalContent>
+                                      <ModalHeader>Choose accounts</ModalHeader>
+                                      <ModalCloseButton />
+                                      <ModalBody>
+                                        <Formik
+                                          initialValues={{ accountId: "" }}
+                                          onSubmit={() =>
+                                            console.log("clicked")
+                                          }
+                                        >
+                                          {(props) => (
+                                            <Form>
+                                              <FormControl>
+                                                <FormLabel htmlFor="accountId">
+                                                  Account
+                                                </FormLabel>
+                                                <Select
+                                                  placeholder="Select option"
+                                                  id="accountId"
+                                                  name="accountId"
+                                                  value={props.values.accountId}
+                                                  onChange={(e) =>
+                                                    props.setFieldValue(
+                                                      "accountId",
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  required
+                                                >
+                                                  {ACCOUNTS.filter(
+                                                    (account) =>
+                                                      account.website ===
+                                                      single.website
+                                                  ).map((account) => (
+                                                    <option
+                                                      value={account._id}
+                                                      key={account._id}
+                                                    >
+                                                      {account.name}
+                                                    </option>
+                                                  ))}
+                                                </Select>
+                                              </FormControl>
+                                            </Form>
+                                          )}
+                                        </Formik>
+                                      </ModalBody>
+                                      <ModalFooter>
+                                        <Button colorScheme="blue">
+                                          Charge
+                                        </Button>
+                                      </ModalFooter>
+                                    </ModalContent>
+                                  </Modal>
+                                </>
                               </MenuList>
                             </Menu>
                           </Td>
