@@ -19,6 +19,7 @@ import {
   FormControl,
   FormLabel,
   VStack,
+  Progress,
 } from "@chakra-ui/react";
 import { Formik, Form, Field } from "formik";
 import React, { useState } from "react";
@@ -159,6 +160,23 @@ const FilterInput = () => (
   </VStack>
 );
 
+const layout = Array.from({ length: 8 });
+
+const LoadingLayout = () => (
+  <>
+    {layout.map((_item, i) => (
+      <Tr height="57px" key={i}>
+        {ITEM_DEFAULT.map((field, index) => {
+          return (
+            <Td key={index}>
+              <Progress colorScheme="gray" size="lg" isIndeterminate />
+            </Td>
+          );
+        })}
+      </Tr>
+    ))}
+  </>
+);
 const Items = () => {
   const [freezeNo, setFreezeNo] = useState(4);
   const [selected, setSelected] = useState(ITEM_DEFAULT);
@@ -254,139 +272,166 @@ const Items = () => {
               />
             </HStack>
           </Box>
-          {status === "loading" ? (
+          {/* {status === "loading" ? (
             <Spinner position="absolute" top="50%" left="50%" />
           ) : status === "error" ? (
             <span>{(error as Error).message}</span>
-          ) : (
-            <Box marginTop={8} w="100%">
-              <Box
-                position="relative"
-                overflow="auto hidden"
-                whiteSpace="nowrap"
-                minH="500px"
-                fontSize="14px"
-              >
-                <Table>
-                  <Thead>
-                    <Tr>
-                      {selected.map((field, index) => {
-                        return (
-                          <TableCeil
-                            key={index}
-                            index={index}
-                            freezeNo={freezeNo}
-                          >
-                            {ITEM_FIELD_MAP[field as keyof I_Item]}
-                          </TableCeil>
-                        );
-                        // if (index < freezeNo) {
-                        //   return (
-                        //     <Th
-                        //       key={index}
-                        //       position="sticky"
-                        //       backgroundColor="gray.300"
-                        //       maxW={200}
-                        //       minW={200}
-                        //       left={200 * index}
-                        //       textTransform="capitalize"
-                        //     >
-                        //       {ITEM_FIELD_MAP[field as keyof I_Item]}
-                        //     </Th>
-                        //   );
-                        // } else {
-                        //   return (
-                        //     <Th
-                        //       key={index}
-                        //       backgroundColor="gray.200"
-                        //       textTransform="capitalize"
-                        //     >
-                        //       {ITEM_FIELD_MAP[field as keyof I_Item]}
-                        //     </Th>
-                        //   );
-                        // }
-                      })}
-                      <Th
-                        right={0}
-                        position="sticky"
-                        maxW="100px"
-                        minW="100px"
-                        backgroundColor="gray.300"
-                        borderTopRightRadius={6}
-                        borderBottomRightRadius={6}
-                        textTransform="capitalize"
-                      >
-                        Actions
-                      </Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {data.data.data.map((single: I_Item) => (
-                      <Tr key={single._id}>
-                        {selected.map((field, index) => {
-                          const [output, fullStr] = truncate(
-                            single[field as keyof I_Item],
-                            16,
-                            ITEM_FIELD_MAP_2[field as keyof I_Item].type
-                          );
-                          if (index < freezeNo) {
-                            return (
-                              <Td
-                                position="sticky"
-                                maxW={200}
-                                minW={200}
-                                left={200 * index}
-                                backgroundColor="gray.50"
-                                key={index}
-                              >
-                                <Tooltip label={fullStr} aria-label="A tooltip">
-                                  <span>{output}</span>
-                                </Tooltip>
-                              </Td>
-                            );
-                          } else {
-                            return <Td key={index}>{output}</Td>;
-                          }
-                        })}
-                        <Td
-                          right={0}
-                          position="sticky"
-                          maxW="100px"
-                          minW="100px"
-                          textTransform="capitalize"
-                          bg="gray.50"
-                          _hover={{ zIndex: 1 }}
+          ) : ( */}
+          <Box marginTop={8} w="100%">
+            <Box
+              position="relative"
+              overflow="auto hidden"
+              whiteSpace="nowrap"
+              minH="500px"
+              fontSize="14px"
+            >
+              <Table>
+                <Thead>
+                  <Tr>
+                    {selected.map((field, index) => {
+                      return (
+                        <TableCeil
+                          key={index}
+                          index={index}
+                          freezeNo={freezeNo}
                         >
-                          <Menu>
-                            <MenuButton
-                              as={IconButton}
-                              aria-label="More options"
-                              icon={<RiMoreFill />}
-                              variant="outline"
-                              size="xs"
-                              borderRadius="50%"
+                          {ITEM_FIELD_MAP[field as keyof I_Item]}
+                        </TableCeil>
+                      );
+                      // if (index < freezeNo) {
+                      //   return (
+                      //     <Th
+                      //       key={index}
+                      //       position="sticky"
+                      //       backgroundColor="gray.300"
+                      //       maxW={200}
+                      //       minW={200}
+                      //       left={200 * index}
+                      //       textTransform="capitalize"
+                      //     >
+                      //       {ITEM_FIELD_MAP[field as keyof I_Item]}
+                      //     </Th>
+                      //   );
+                      // } else {
+                      //   return (
+                      //     <Th
+                      //       key={index}
+                      //       backgroundColor="gray.200"
+                      //       textTransform="capitalize"
+                      //     >
+                      //       {ITEM_FIELD_MAP[field as keyof I_Item]}
+                      //     </Th>
+                      //   );
+                      // }
+                    })}
+                    <Th
+                      right={0}
+                      position="sticky"
+                      maxW="100px"
+                      minW="100px"
+                      backgroundColor="gray.300"
+                      borderTopRightRadius={6}
+                      borderBottomRightRadius={6}
+                      textTransform="capitalize"
+                    >
+                      Actions
+                    </Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {status === "loading" ? (
+                    <LoadingLayout />
+                  ) : status === "error" ? (
+                    <span>{(error as Error).message}</span>
+                  ) : (
+                    <>
+                      {data.data.data.map((single: I_Item) => (
+                        <Tr key={single._id}>
+                          {selected.map((field, index) => {
+                            const [output, fullStr] = truncate(
+                              single[field as keyof I_Item],
+                              16,
+                              ITEM_FIELD_MAP_2[field as keyof I_Item].type
+                            );
+                            if (index < freezeNo) {
+                              return (
+                                <Td
+                                  position="sticky"
+                                  maxW={200}
+                                  minW={200}
+                                  left={200 * index}
+                                  backgroundColor="gray.50"
+                                  key={index}
+                                >
+                                  <Tooltip
+                                    label={fullStr}
+                                    aria-label="A tooltip"
+                                  >
+                                    <span>{output}</span>
+                                  </Tooltip>
+                                </Td>
+                              );
+                            } else {
+                              return <Td key={index}>{output}</Td>;
+                            }
+                          })}
+                          <Td
+                            right={0}
+                            position="sticky"
+                            maxW="100px"
+                            minW="100px"
+                            textTransform="capitalize"
+                            bg="gray.50"
+                            _hover={{ zIndex: 1 }}
+                          >
+                            <Menu>
+                              <MenuButton
+                                as={IconButton}
+                                aria-label="More options"
+                                icon={<RiMoreFill />}
+                                variant="outline"
+                                size="xs"
+                                borderRadius="50%"
+                              />
+                              <MenuList>
+                                <MenuItem>View details</MenuItem>
+                                <MenuItem>Edit</MenuItem>
+                                <MenuItem
+                                  onClick={() => {
+                                    console.log("CLICKED");
+                                    mutate(single._id);
+                                  }}
+                                >
+                                  Delete
+                                </MenuItem>
+                                <MenuItem>Charge</MenuItem>
+                              </MenuList>
+                            </Menu>
+                          </Td>
+                        </Tr>
+                      ))}
+                      {Array.from({ length: 8 - data.data.data.length }).map(
+                        (item, i) => (
+                          <Tr key={i} height="57px">
+                            {selected.map((field, index) => (
+                              <Td></Td>
+                            ))}
+                            <Td
+                              right={0}
+                              position="sticky"
+                              maxW="100px"
+                              minw="100px"
                             />
-                            <MenuList>
-                              <MenuItem>View details</MenuItem>
-                              <MenuItem>Edit</MenuItem>
-                              <MenuItem
-                                onClick={() => {
-                                  console.log("CLICKED");
-                                  mutate(single._id);
-                                }}
-                              >
-                                Delete
-                              </MenuItem>
-                              <MenuItem>Charge</MenuItem>
-                            </MenuList>
-                          </Menu>
-                        </Td>
-                      </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
-              </Box>
+                          </Tr>
+                        )
+                      )}
+                    </>
+                  )}
+                </Tbody>
+              </Table>
+            </Box>
 
+            {status === "loading" ? null : (
               <HStack alignItems="center" justifyContent="flex-end" mt="16px">
                 <Button
                   disabled={page === 1}
@@ -406,8 +451,9 @@ const Items = () => {
                   Next
                 </Button>
               </HStack>
-            </Box>
-          )}
+            )}
+          </Box>
+          {/* )} */}
         </Box>
       </Box>
     </>
