@@ -56,6 +56,7 @@ import { FreezeCol, Sort, LimitField } from "../../components/Options";
 import Filter from "../../components/Options/Filter";
 import { TableCeil } from "../../components/styles/Table";
 import ContentHeader from "../../components/ContentHeader";
+import Link from "next/link";
 export interface I_Item {
   _id: string;
   createdAt: string;
@@ -198,6 +199,11 @@ const Items = () => {
   const [limit] = useState(8);
   const [filter, setFilter] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isOpen2,
+    onOpen: onOpen2,
+    onClose: onClose2,
+  } = useDisclosure();
   const currentItem = useRef("");
   const { status, data, error } = useQuery(
     ["items", page, selected, sort, filter],
@@ -211,7 +217,13 @@ const Items = () => {
 
   const queryClient = useQueryClient();
 
-  const { mutate } = useMutation(
+  const {
+    mutate: deleteItem,
+    error: deleteError,
+    isError: isDeleteError,
+    isLoading: isDeleteLoading,
+    reset: resetDelete,
+  } = useMutation(
     (data: string) =>
       client(`${BASE_URL}/items/${data}`, {
         method: "DELETE",
@@ -220,6 +232,7 @@ const Items = () => {
     {
       onSuccess: () => {
         queryClient.invalidateQueries(["items", page, selected, sort, filter]);
+        onClose2();
       },
     }
   );
@@ -428,16 +441,62 @@ const Items = () => {
                                 borderRadius="50%"
                               />
                               <MenuList>
-                                <MenuItem>View details</MenuItem>
-                                <MenuItem>Edit</MenuItem>
-                                <MenuItem
-                                  onClick={() => {
-                                    console.log("CLICKED");
-                                    mutate(single._id);
-                                  }}
+                                <Link
+                                  href={`/items/${single._id}/edit`}
+                                  passHref
                                 >
-                                  Delete
-                                </MenuItem>
+                                  <MenuItem>Edit</MenuItem>
+                                </Link>
+                                <>
+                                  <MenuItem
+                                    onClick={() => {
+                                      // mutate(single._id);
+                                      currentItem.current = single._id;
+                                      onOpen2();
+                                    }}
+                                  >
+                                    Delete
+                                  </MenuItem>
+                                  <Modal
+                                    isOpen={isOpen2}
+                                    onClose={() => {
+                                      onClose2();
+                                      resetDelete();
+                                    }}
+                                    isCentered
+                                  >
+                                    <ModalOverlay />
+                                    <ModalContent>
+                                      <ModalHeader>Alert</ModalHeader>
+                                      <ModalCloseButton />
+                                      <ModalBody>
+                                        {isDeleteError && (
+                                          <Alert status="error">
+                                            <AlertIcon />
+                                            <AlertTitle>
+                                              {(deleteError as Error).message}
+                                            </AlertTitle>
+                                          </Alert>
+                                        )}
+                                        <p>Are you sure you want to delete?</p>
+                                      </ModalBody>
+                                      <ModalFooter>
+                                        <Button
+                                          isLoading={isDeleteLoading}
+                                          colorScheme="red"
+                                          onClick={() => {
+                                            deleteItem(currentItem.current);
+                                          }}
+                                        >
+                                          Delete
+                                        </Button>
+                                        <Button onClick={onClose2}>
+                                          Cancel
+                                        </Button>
+                                      </ModalFooter>
+                                    </ModalContent>
+                                  </Modal>
+                                </>
                                 <>
                                   <MenuItem
                                     onClick={() => {

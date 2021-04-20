@@ -14,7 +14,10 @@ function truncate(str: string, num: number, type: string) {
         str,
       ];
     } else if (type === "internalLink") {
-      return [<Link href="/">{str.slice(0, 16) + "..."}</Link>, str];
+      return [
+        <Link href={`/items/${str}`}>{str.slice(0, 16) + "..."}</Link>,
+        str,
+      ];
     } else if (type === "badge") {
       return [<Tag size="md">{str}</Tag>, str];
     } else {
