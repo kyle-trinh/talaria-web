@@ -11,11 +11,11 @@ import {
   VStack,
   Checkbox,
   PopoverFooter,
-} from "@chakra-ui/react";
-import { Formik, Form } from "formik";
-import React from "react";
-import { BiSelectMultiple } from "react-icons/bi";
-import { ITEM_FIELDS, ITEM_FIELD_MAP_2, ITEM_DEFAULT } from "../../constants";
+} from '@chakra-ui/react';
+import { Formik, Form } from 'formik';
+import React from 'react';
+import { BiSelectMultiple } from 'react-icons/bi';
+import { ITEM_FIELDS, ITEM_FIELD_MAP_2, ITEM_DEFAULT } from '../../constants';
 
 interface fieldType {
   full: string;
@@ -44,7 +44,7 @@ export default function LimitField({
   const [selectedOpen, setSelectedOpen] = React.useState(false);
   return (
     <Popover
-      placement="bottom-end"
+      placement='bottom-end'
       returnFocusOnClose={false}
       isOpen={selectedOpen}
       onClose={() => setSelectedOpen(false)}
@@ -52,7 +52,7 @@ export default function LimitField({
       onOpen={() => setSelectedOpen(true)}
     >
       <PopoverTrigger>
-        <Button _hover={{ backgroundColor: "gray.300" }}>
+        <Button _hover={{ backgroundColor: 'gray.300' }}>
           <Icon as={BiSelectMultiple} />
         </Button>
       </PopoverTrigger>
@@ -68,23 +68,23 @@ export default function LimitField({
             <PopoverContent>
               <PopoverCloseButton />
               <PopoverHeader>Make your selection</PopoverHeader>
-              <PopoverBody height="400px" overflow="auto">
+              <PopoverBody height='400px' overflow='auto'>
                 <CheckboxGroup
-                  colorScheme="teal"
+                  colorScheme='teal'
                   defaultValue={props.values.checked}
                   onChange={(value) => {
-                    props.setFieldValue("checked", value);
+                    props.setFieldValue('checked', value);
                   }}
                   value={props.values.checked}
                 >
-                  <VStack alignItems="stretch" spacing="6px">
-                    {ITEM_FIELDS.map((field) => (
+                  <VStack alignItems='stretch' spacing='6px'>
+                    {fields.map((field) => (
                       <Checkbox
                         value={field}
-                        px="20px"
-                        colorScheme="teal"
-                        borderRadius="lg"
-                        textTransform="capitalize"
+                        px='20px'
+                        colorScheme='teal'
+                        borderRadius='lg'
+                        textTransform='capitalize'
                         key={field}
                         // onChange={(e) => e.target.checked }
                       >
@@ -95,13 +95,13 @@ export default function LimitField({
                 </CheckboxGroup>
               </PopoverBody>
               <PopoverFooter>
-                <VStack alignItems="stretch">
-                  <Button colorScheme="teal" type="submit">
+                <VStack alignItems='stretch'>
+                  <Button colorScheme='teal' type='submit'>
                     Submit
                   </Button>
                   <Button
                     onClick={() => {
-                      props.setFieldValue("checked", fields);
+                      props.setFieldValue('checked', fields);
                       setSelected(fields);
                       setSelectedOpen(false);
                     }}
@@ -110,7 +110,7 @@ export default function LimitField({
                   </Button>
                   <Button
                     onClick={() => {
-                      props.setFieldValue("checked", defaults);
+                      props.setFieldValue('checked', defaults);
                       setSelected(defaults);
                       setSelectedOpen(false);
                     }}

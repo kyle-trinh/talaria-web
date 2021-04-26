@@ -28,13 +28,18 @@ import {
   AlertTitle,
   ModalFooter,
   useDisclosure,
+  Skeleton,
+  Icon,
 } from '@chakra-ui/react';
+
+import NextLink from 'next/link';
+import { Sort } from '../../components/Options';
 
 export default function AccountPage() {
   const [sort, setSort] = useState('_id:desc');
   const [page, setPage] = useState(1);
 
-  const [fieldOrder, fieldName] = sort.split(':');
+  const [fieldName, fieldOrder] = sort.split(':');
 
   const { data, status, error } = useQuery(['accounts', sort, page], () =>
     client(
@@ -42,6 +47,31 @@ export default function AccountPage() {
         fieldOrder === 'desc' ? '-' : ''
       }${fieldName}`
     )
+  );
+
+  const LoadingLayout = () => (
+    <>
+      {Array.from({ length: 8 }).map((_item, i) => (
+        <Tr height='57px' key={i}>
+          {ACCOUNT_FIELDS.map((field, index) => {
+            return (
+              <Td key={index}>
+                <Skeleton height='16px' />
+              </Td>
+            );
+          })}
+          <Td
+            right={0}
+            position='sticky'
+            maxW='100px'
+            minW='100px'
+            bg='gray.50'
+          >
+            <Icon as={IconButton} />
+          </Td>
+        </Tr>
+      ))}
+    </>
   );
 
   const {
@@ -79,9 +109,16 @@ export default function AccountPage() {
       <ContentHeader title='Accounts' />
       <ContentBody>
         <Box>
-          <Box display='flex' justifyContent='flex-end'>
-            <Button colorScheme='teal'>Add account +</Button>
-          </Box>
+          <HStack justifyContent='flex-end' spacing={8}>
+            <NextLink href='/accounts/new' passHref>
+              <Button colorScheme='teal'>Add account +</Button>
+            </NextLink>
+            <Sort
+              setSort={setSort}
+              map={ACCOUNT_FIELD_MAP}
+              sortable={['_id', 'createdAt', 'balance']}
+            />
+          </HStack>
           <Box marginTop={8} w='100%'>
             <Box fontSize='14px' whiteSpace='nowrap'>
               <Table>
@@ -105,7 +142,7 @@ export default function AccountPage() {
                 </Thead>
                 <Tbody>
                   {status === 'loading' ? (
-                    <Spinner />
+                    <LoadingLayout />
                   ) : status === 'error' ? (
                     <span>{(error as Error).message}</span>
                   ) : (
@@ -135,7 +172,7 @@ export default function AccountPage() {
                                 variant='outline'
                                 size='xs'
                                 borderRadius='50%'
-                              ></MenuButton>
+                              />
                               <MenuList>
                                 <Link
                                   href={`/accounts/${single._id}/edit`}

@@ -46,6 +46,9 @@ import {
   ITEM_FIELDS,
   SELECT_STYLE,
   ACCOUNTS,
+  CRYPTO_DEFAULT,
+  CRYPTO_FIELD_MAP,
+  CRYPTO_FIELDS,
 } from '../../constants';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { client } from '../../utils/api-client';
@@ -189,9 +192,9 @@ const LoadingLayout = () => (
     ))}
   </>
 );
-const Items = () => {
+const Cryptos = () => {
   const [freezeNo, setFreezeNo] = useState(4);
-  const [selected, setSelected] = useState(ITEM_DEFAULT);
+  const [selected, setSelected] = useState(CRYPTO_DEFAULT);
   const [sort, setSort] = useState('_id:desc');
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
@@ -203,13 +206,15 @@ const Items = () => {
     onClose: onClose2,
   } = useDisclosure();
   const currentItem = useRef('');
-  const { status, data, error } = useItems(
-    null,
-    page,
-    selected,
-    sort,
-    filter,
-    limit
+  const [fieldName, fieldOrder] = sort.split(':');
+  const { status, data, error } = useQuery(
+    ['cryptos', page, selected, sort, filter, limit],
+    () =>
+      client(
+        `${BASE_URL}/cryptos?page=${page}&limit=${limit}&fields=${selected}&sort=${
+          fieldOrder === 'desc' ? '-' : ''
+        }${fieldName} ${filter && `&${filter}`}`
+      )
   );
   // const { status, data, error } = useQuery(
   //   ["items", page, selected, sort, filter],
@@ -257,8 +262,8 @@ const Items = () => {
   );
   return (
     <>
-      <Header title='Items' />
-      <ContentHeader title='Items' />
+      <Header title='Cryptos' />
+      <ContentHeader title='Cryptos' />
       <Box
         gridArea='main'
         bg='white'
@@ -271,63 +276,24 @@ const Items = () => {
         overflow='auto'
       >
         <Box>
-          <Box display='flex' justifyContent='space-between'>
-            <Box w={500}>
-              <Formik
-                initialValues={{ search: '' }}
-                onSubmit={(values) => console.log(values)}
-              >
-                {() => (
-                  <Form>
-                    <InputField
-                      type='text'
-                      name='search'
-                      placeholder='Search for items...'
-                    />
-                  </Form>
-                )}
-              </Formik>
-            </Box>
-            <HStack spacing={2} align='stretch'>
-              <NextLink href='/items/new' passHref>
-                <Button colorScheme='teal'>Add items +</Button>
-              </NextLink>
-              <FreezeCol freezeNo={freezeNo} setFreezeNo={setFreezeNo} />
-              <Filter
-                setFilter={setFilter}
-                defaultValues={{
-                  pricePerItemFrom: '',
-                  pricePerItemTo: '',
-                  createdAtFrom: '',
-                  createdAtTo: '',
-                  warehouse: '',
-                  status: '',
-                  website: '',
-                  orderAccount: '',
-                }}
-              >
-                <FilterInput />
-              </Filter>
-              <Sort
-                sortable={[
-                  '_id',
-                  'createdAt',
-                  'pricePerItem',
-                  'updatedAt',
-                  'orderDate',
-                ]}
-                setSort={setSort}
-                map={ITEM_FIELD_MAP_2}
-              />
-              <LimitField
-                selected={selected}
-                setSelected={setSelected}
-                fields={ITEM_FIELDS}
-                defaults={ITEM_DEFAULT}
-                map={ITEM_FIELD_MAP_2}
-              />
-            </HStack>
-          </Box>
+          <HStack spacing={2} justifyContent='flex-end'>
+            <NextLink href='/items/new' passHref>
+              <Button colorScheme='teal'>Add items +</Button>
+            </NextLink>
+            <FreezeCol freezeNo={freezeNo} setFreezeNo={setFreezeNo} />
+            <Sort
+              sortable={['_id', 'createdAt']}
+              setSort={setSort}
+              map={CRYPTO_FIELD_MAP}
+            />
+            <LimitField
+              selected={selected}
+              setSelected={setSelected}
+              fields={CRYPTO_FIELDS}
+              defaults={CRYPTO_DEFAULT}
+              map={CRYPTO_FIELD_MAP}
+            />
+          </HStack>
           {/* {status === "loading" ? (
             <Spinner position="absolute" top="50%" left="50%" />
           ) : status === "error" ? (
@@ -351,34 +317,9 @@ const Items = () => {
                           index={index}
                           freezeNo={freezeNo}
                         >
-                          {ITEM_FIELD_MAP[field as keyof I_Item]}
+                          {CRYPTO_FIELD_MAP[field].full}
                         </TableCeil>
                       );
-                      // if (index < freezeNo) {
-                      //   return (
-                      //     <Th
-                      //       key={index}
-                      //       position="sticky"
-                      //       backgroundColor="gray.300"
-                      //       maxW={200}
-                      //       minW={200}
-                      //       left={200 * index}
-                      //       textTransform="capitalize"
-                      //     >
-                      //       {ITEM_FIELD_MAP[field as keyof I_Item]}
-                      //     </Th>
-                      //   );
-                      // } else {
-                      //   return (
-                      //     <Th
-                      //       key={index}
-                      //       backgroundColor="gray.200"
-                      //       textTransform="capitalize"
-                      //     >
-                      //       {ITEM_FIELD_MAP[field as keyof I_Item]}
-                      //     </Th>
-                      //   );
-                      // }
                     })}
                     <Th
                       right={0}
@@ -405,9 +346,9 @@ const Items = () => {
                         <Tr key={single._id}>
                           {selected.map((field, index) => {
                             const [output, fullStr] = truncate(
-                              single[field as keyof I_Item],
+                              single[field],
                               16,
-                              ITEM_FIELD_MAP_2[field as keyof I_Item].type
+                              CRYPTO_FIELD_MAP[field].type
                             );
                             if (index < freezeNo) {
                               return (
@@ -459,7 +400,6 @@ const Items = () => {
                                 <>
                                   <MenuItem
                                     onClick={() => {
-                                      // mutate(single._id);
                                       currentItem.current = single._id;
                                       onOpen2();
                                     }}
@@ -532,7 +472,6 @@ const Items = () => {
                                           id: currentItem.current,
                                         });
                                         console.log(currentItem.current);
-                                        // onClose();
                                       }}
                                     >
                                       {(props) => (
@@ -666,4 +605,4 @@ const Items = () => {
   );
 };
 
-export default Items;
+export default Cryptos;

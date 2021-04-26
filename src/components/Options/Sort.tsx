@@ -9,13 +9,13 @@ import {
   Icon,
   PopoverFooter,
   VStack,
-} from "@chakra-ui/react";
-import { Formik, Form, Field } from "formik";
-import React, { Dispatch, SetStateAction } from "react";
-import { GrSort } from "react-icons/gr";
-import { ITEM_FIELD_MAP, SELECT_STYLE } from "../../constants";
+} from '@chakra-ui/react';
+import { Formik, Form, Field } from 'formik';
+import React, { Dispatch, SetStateAction } from 'react';
+import { GrSort } from 'react-icons/gr';
+import { ITEM_FIELD_MAP, SELECT_STYLE } from '../../constants';
 
-const sortable = ["_id", "createdAt", "pricePerItem", "updatedAt", "orderDate"];
+// const sortable = ["_id", "createdAt", "pricePerItem", "updatedAt", "orderDate"];
 interface fieldType {
   full: string;
   type: string;
@@ -28,13 +28,14 @@ interface mapType {
 interface SortProps {
   setSort: Dispatch<SetStateAction<string>>;
   map: mapType;
+  sortable: string[];
 }
 
-export default function Sort({ setSort, map }: SortProps) {
+export default function Sort({ setSort, map, sortable }: SortProps) {
   const [sortOpen, setSortOpen] = React.useState(false);
   return (
     <Popover
-      placement="bottom-end"
+      placement='bottom-end'
       returnFocusOnClose={false}
       isOpen={sortOpen}
       onClose={() => setSortOpen(false)}
@@ -42,13 +43,14 @@ export default function Sort({ setSort, map }: SortProps) {
       onOpen={() => setSortOpen(true)}
     >
       <PopoverTrigger>
-        <Button _hover={{ backgroundColor: "gray.300" }}>
+        <Button _hover={{ backgroundColor: 'gray.300' }}>
           <Icon as={GrSort} />
         </Button>
       </PopoverTrigger>
       <Formik
-        initialValues={{ field: "_id", order: "desc" }}
+        initialValues={{ field: '_id', order: 'desc' }}
         onSubmit={(values) => {
+          console.log(values);
           setSort(`${values.field}:${values.order}`);
           setSortOpen(false);
         }}
@@ -59,12 +61,12 @@ export default function Sort({ setSort, map }: SortProps) {
               <PopoverCloseButton />
               <PopoverHeader>Make selection</PopoverHeader>
               <PopoverBody>
-                <VStack spacing="8px">
+                <VStack spacing='8px'>
                   <Field
-                    as="select"
-                    placeholder="select option"
-                    name="field"
-                    id="field"
+                    as='select'
+                    placeholder='select option'
+                    name='field'
+                    id='field'
                     style={SELECT_STYLE}
                   >
                     {sortable.map((el) => (
@@ -74,19 +76,19 @@ export default function Sort({ setSort, map }: SortProps) {
                     ))}
                   </Field>
                   <Field
-                    as="select"
-                    placeholder="select option"
-                    name="order"
+                    as='select'
+                    placeholder='select option'
+                    name='order'
                     style={SELECT_STYLE}
                   >
-                    <option value="asc">Ascending</option>
-                    <option value="desc">Descending</option>
+                    <option value='asc'>Ascending</option>
+                    <option value='desc'>Descending</option>
                   </Field>
                 </VStack>
               </PopoverBody>
               <PopoverFooter>
-                <VStack alignItems="stretch">
-                  <Button type="submit" colorScheme="teal">
+                <VStack alignItems='stretch'>
+                  <Button type='submit' colorScheme='teal'>
                     Submit
                   </Button>
                 </VStack>
