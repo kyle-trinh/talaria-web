@@ -49,6 +49,9 @@ import {
   CRYPTO_DEFAULT,
   CRYPTO_FIELD_MAP,
   CRYPTO_FIELDS,
+  GIFT_CARD_DEFAULT,
+  GIFT_CARD_MAP,
+  GIFT_CARD_FIELDS,
 } from '../../constants';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { client } from '../../utils/api-client';
@@ -113,7 +116,7 @@ const LoadingLayout = () => (
 );
 const Cryptos = () => {
   const [freezeNo, setFreezeNo] = useState(4);
-  const [selected, setSelected] = useState(CRYPTO_DEFAULT);
+  const [selected, setSelected] = useState(GIFT_CARD_DEFAULT);
   const [sort, setSort] = useState('_id:desc');
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
@@ -127,10 +130,10 @@ const Cryptos = () => {
   const currentItem = useRef('');
   const [fieldName, fieldOrder] = sort.split(':');
   const { status, data, error } = useQuery(
-    ['cryptos', page, selected, sort, filter, limit],
+    ['giftcards', page, selected, sort, filter, limit],
     () =>
       client(
-        `${BASE_URL}/cryptos?page=${page}&limit=${limit}&fields=${selected}&sort=${
+        `${BASE_URL}/giftcards?page=${page}&limit=${limit}&fields=${selected}&sort=${
           fieldOrder === 'desc' ? '-' : ''
         }${fieldName} ${filter && `&${filter}`}`
       )
@@ -181,8 +184,8 @@ const Cryptos = () => {
   );
   return (
     <>
-      <Header title='Cryptos' />
-      <ContentHeader title='Cryptos' />
+      <Header title='Giftcards' />
+      <ContentHeader title='Giftcards' />
       <Box
         gridArea='main'
         bg='white'
@@ -196,21 +199,21 @@ const Cryptos = () => {
       >
         <Box>
           <HStack spacing={2} justifyContent='flex-end'>
-            <NextLink href='/cryptos/new' passHref>
-              <Button colorScheme='teal'>Add cryptos +</Button>
+            <NextLink href='/giftcards/new' passHref>
+              <Button colorScheme='teal'>Add giftcards +</Button>
             </NextLink>
             <FreezeCol freezeNo={freezeNo} setFreezeNo={setFreezeNo} />
             <Sort
               sortable={['_id', 'createdAt']}
               setSort={setSort}
-              map={CRYPTO_FIELD_MAP}
+              map={GIFT_CARD_MAP}
             />
             <LimitField
               selected={selected}
               setSelected={setSelected}
-              fields={CRYPTO_FIELDS}
-              defaults={CRYPTO_DEFAULT}
-              map={CRYPTO_FIELD_MAP}
+              fields={GIFT_CARD_FIELDS}
+              defaults={GIFT_CARD_DEFAULT}
+              map={GIFT_CARD_MAP}
             />
           </HStack>
           {/* {status === "loading" ? (
@@ -236,7 +239,7 @@ const Cryptos = () => {
                           index={index}
                           freezeNo={freezeNo}
                         >
-                          {CRYPTO_FIELD_MAP[field].full}
+                          {GIFT_CARD_MAP[field].full}
                         </TableCeil>
                       );
                     })}
@@ -267,7 +270,7 @@ const Cryptos = () => {
                             const [output, fullStr] = truncate(
                               single[field],
                               16,
-                              CRYPTO_FIELD_MAP[field].type
+                              GIFT_CARD_MAP[field].type
                             );
                             if (index < freezeNo) {
                               return (

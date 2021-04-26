@@ -421,6 +421,99 @@ const CRYPTO_FIELD_MAP = {
   },
 };
 
+const GIFT_CARD_FIELDS = [
+  '_id',
+  'createdAt',
+  'updatedAt',
+  'price',
+  'fee',
+  'value',
+  'website',
+  'notes',
+  'discountRate',
+  'remainingBalance',
+  'btcUsdRate',
+  'usdVndRate',
+  'transaction',
+  'fromAccount',
+  'toAccount',
+];
+
+const GIFT_CARD_DEFAULT = [
+  '_id',
+  'createdAt',
+  'price',
+  'fee',
+  'value',
+  'website',
+  'notes',
+  'discountRate',
+];
+
+const GIFT_CARD_MAP = {
+  _id: {
+    type: 'internalLink',
+    full: 'id',
+  },
+  createdAt: {
+    type: 'string',
+    full: 'created at',
+  },
+  updatedAt: {
+    type: 'string',
+    full: 'updated at',
+  },
+  price: {
+    type: 'string',
+    full: 'price',
+  },
+  fee: {
+    type: 'string',
+    full: 'fee',
+  },
+  value: {
+    type: 'string',
+    full: 'value',
+  },
+  website: {
+    type: 'string',
+    full: 'website',
+  },
+  notes: {
+    type: 'string',
+    full: 'notes',
+  },
+  discountRate: {
+    type: 'string',
+    full: 'discount rate',
+  },
+  remainingBalance: {
+    type: 'string',
+    full: 'remaining balance',
+  },
+  btcUsdRate: {
+    type: 'string',
+    full: 'btc / usd',
+  },
+  usdVndRate: {
+    type: 'string',
+    full: 'usd / vnd',
+  },
+
+  transaction: {
+    type: 'internalLink',
+    full: 'transaction',
+  },
+  fromAccount: {
+    type: 'internalLink',
+    full: 'from account',
+  },
+  toAccount: {
+    type: 'internalLink',
+    full: 'to account',
+  },
+};
+
 export {
   BASE_URL,
   ITEM_FIELD_MAP,
@@ -435,4 +528,7 @@ export {
   CRYPTO_DEFAULT,
   CRYPTO_FIELDS,
   CRYPTO_FIELD_MAP,
+  GIFT_CARD_DEFAULT,
+  GIFT_CARD_FIELDS,
+  GIFT_CARD_MAP,
 };
