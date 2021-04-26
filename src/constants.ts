@@ -247,6 +247,53 @@ const ITEM_DEFAULT = [
   "website",
 ];
 
+const ACCOUNT_FIELDS = [
+  "_id",
+  "createdAt",
+  "name",
+  "website",
+  "balance",
+  "currency",
+  "status",
+  "notes",
+];
+
+const ACCOUNT_FIELD_MAP = {
+  _id: {
+    type: "internalLink",
+    full: "id",
+  },
+  createdAt: {
+    type: "string",
+    full: "created at",
+  },
+  name: {
+    type: "string",
+    full: "name",
+  },
+  website: {
+    type: "string",
+    full: "website",
+  },
+  balance: {
+    type: "string",
+    full: "balance",
+  },
+  currency: {
+    type: "string",
+    full: "currency",
+  },
+  status: {
+    type: "string",
+    full: "status",
+  },
+
+  notes: {
+    type: "string",
+    full: "notes",
+  },
+};
+
 const ACCOUNTS = [
   {
     _id: "604fdc268b219f0715099180",
@@ -301,4 +348,6 @@ export {
   ITEM_FIELDS,
   ITEM_DEFAULT,
   ACCOUNTS,
+  ACCOUNT_FIELDS,
+  ACCOUNT_FIELD_MAP,
 };

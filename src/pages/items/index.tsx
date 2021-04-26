@@ -9,7 +9,6 @@ import {
   Tr,
   Th,
   Td,
-  Spinner,
   Select,
   Menu,
   MenuButton,
@@ -20,7 +19,6 @@ import {
   FormControl,
   FormLabel,
   VStack,
-  Progress,
   useDisclosure,
   Modal,
   ModalOverlay,
@@ -57,6 +55,7 @@ import Filter from "../../components/Options/Filter";
 import { TableCeil } from "../../components/styles/Table";
 import ContentHeader from "../../components/ContentHeader";
 import Link from "next/link";
+import { useItems, useDeleteItem } from "../../utils/items";
 export interface I_Item {
   _id: string;
   createdAt: string;
@@ -194,7 +193,6 @@ const Items = () => {
   const [freezeNo, setFreezeNo] = useState(4);
   const [selected, setSelected] = useState(ITEM_DEFAULT);
   const [sort, setSort] = useState("_id:desc");
-  const [fieldName, fieldOrder] = sort.split(":");
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
   const [filter, setFilter] = useState("");
@@ -205,15 +203,23 @@ const Items = () => {
     onClose: onClose2,
   } = useDisclosure();
   const currentItem = useRef("");
-  const { status, data, error } = useQuery(
-    ["items", page, selected, sort, filter],
-    () =>
-      client(
-        `${BASE_URL}/items?page=${page}&limit=${limit}&fields=${selected}&sort=${
-          fieldOrder === "desc" ? "-" : ""
-        }${fieldName}${filter && `&${filter}`}`
-      )
+  const { status, data, error } = useItems(
+    null,
+    page,
+    selected,
+    sort,
+    filter,
+    limit
   );
+  // const { status, data, error } = useQuery(
+  //   ["items", page, selected, sort, filter],
+  //   () =>
+  //     client(
+  //       `${BASE_URL}/items?page=${page}&limit=${limit}&fields=${selected}&sort=${
+  //         fieldOrder === "desc" ? "-" : ""
+  //       }${fieldName}${filter && `&${filter}`}`
+  //     )
+  // );
 
   const queryClient = useQueryClient();
 
@@ -223,19 +229,12 @@ const Items = () => {
     isError: isDeleteError,
     isLoading: isDeleteLoading,
     reset: resetDelete,
-  } = useMutation(
-    (data: string) =>
-      client(`${BASE_URL}/items/${data}`, {
-        method: "DELETE",
-        credentials: "include",
-      }),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(["items", page, selected, sort, filter]);
-        onClose2();
-      },
-    }
-  );
+  } = useDeleteItem({
+    onSuccess: () => {
+      queryClient.invalidateQueries(["items", page, selected, sort, filter]);
+      onClose2();
+    },
+  });
 
   const {
     mutate: charge,
