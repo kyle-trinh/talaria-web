@@ -32,68 +32,22 @@ import {
   AlertIcon,
   AlertTitle,
 } from '@chakra-ui/react';
-import { Formik, Form, Field } from 'formik';
 import React, { useState, useRef } from 'react';
 import { RiMoreFill } from 'react-icons/ri';
 import Header from '../../components/Header';
-import { InputField } from '../../components/InputField';
 import NextLink from 'next/link';
 import {
   BASE_URL,
-  ITEM_FIELD_MAP,
   ITEM_DEFAULT,
-  ITEM_FIELD_MAP_2,
-  ITEM_FIELDS,
-  SELECT_STYLE,
-  ACCOUNTS,
-  CRYPTO_DEFAULT,
-  CRYPTO_FIELD_MAP,
-  CRYPTO_FIELDS,
   GIFT_CARD_DEFAULT,
-  GIFT_CARD_MAP,
-  GIFT_CARD_FIELDS,
+  USER_MAP,
 } from '../../constants';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { client } from '../../utils/api-client';
-import { truncate } from '../../utils/index';
-import { FreezeCol, Sort, LimitField } from '../../components/Options';
-import Filter from '../../components/Options/Filter';
-import { TableCeil } from '../../components/styles/Table';
+import { Sort } from '../../components/Options';
 import ContentHeader from '../../components/ContentHeader';
 import Link from 'next/link';
-import { useItems, useDeleteItem } from '../../utils/items';
-export interface I_Item {
-  _id: string;
-  createdAt: string;
-  name: string;
-  link: string;
-  pricePerItem: string;
-  actPricePerItem: string;
-  quantity: string;
-  tax: string;
-  usShippingFee: string;
-  extraShippingCost: string;
-  estWgtPerItem: string;
-  actWgtPerItem: string;
-  actualCost: string;
-  trackingLink: string;
-  invoiceLink: string;
-  orderDate: string;
-  arrvlAtWarehouseDate: string;
-  customerRcvDate: string;
-  returnDate: string;
-  returnArrvlDate: string;
-  notes: string;
-  status: string;
-  website: string;
-  commissionRate: string;
-  itemType: string;
-  orderAccount: string;
-  warehouse: string;
-  transaction: string;
-  updatedAt: string;
-}
-
+import ExternalLink from '../../components/ExternalLink';
 const layout = Array.from({ length: 8 });
 
 const LoadingLayout = () => (
@@ -133,7 +87,7 @@ const Cryptos = () => {
     ['giftcards', page, selected, sort, limit],
     () =>
       client(
-        `${BASE_URL}/giftcards?page=${page}&limit=${limit}&fields=${selected}&sort=${
+        `${BASE_URL}/users?role=customer&page=${page}&limit=${limit}&sort=${
           fieldOrder === 'desc' ? '-' : ''
         }${fieldName} ${filter && `&${filter}`}`
       )
@@ -158,7 +112,7 @@ const Cryptos = () => {
     reset: resetDelete,
   } = useMutation(
     (data) =>
-      client(`${BASE_URL}/giftcards/${data}`, {
+      client(`${BASE_URL}/users/${data}`, {
         method: 'DELETE',
         credentials: 'include',
       }),
@@ -176,29 +130,10 @@ const Cryptos = () => {
     }
   );
 
-  const {
-    mutate: charge,
-    error: chargeError,
-    isError: isChargeError,
-    isLoading: isChargeLoading,
-    reset: resetCharge,
-  } = useMutation(
-    (data: { id: string; accountId: string }) =>
-      client(`${BASE_URL}/items/${data.id}/${data.accountId}`, {
-        method: 'PATCH',
-        credentials: 'include',
-      }),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['items', page, selected, sort, filter]);
-        onClose();
-      },
-    }
-  );
   return (
     <>
-      <Header title='Giftcards' />
-      <ContentHeader title='Giftcards' />
+      <Header title='Customers' />
+      <ContentHeader title='Customers' />
       <Box
         gridArea='main'
         bg='white'
@@ -213,20 +148,12 @@ const Cryptos = () => {
         <Box>
           <HStack spacing={2} justifyContent='flex-end'>
             <NextLink href='/giftcards/new' passHref>
-              <Button colorScheme='teal'>Add giftcards +</Button>
+              <Button colorScheme='teal'>Add customers +</Button>
             </NextLink>
-            <FreezeCol freezeNo={freezeNo} setFreezeNo={setFreezeNo} />
             <Sort
               sortable={['_id', 'createdAt']}
               setSort={setSort}
-              map={GIFT_CARD_MAP}
-            />
-            <LimitField
-              selected={selected}
-              setSelected={setSelected}
-              fields={GIFT_CARD_FIELDS}
-              defaults={GIFT_CARD_DEFAULT}
-              map={GIFT_CARD_MAP}
+              map={USER_MAP}
             />
           </HStack>
           {/* {status === "loading" ? (
@@ -245,27 +172,31 @@ const Cryptos = () => {
               <Table>
                 <Thead>
                   <Tr>
-                    {selected.map((field, index) => {
-                      return (
-                        <TableCeil
-                          key={index}
-                          index={index}
-                          freezeNo={freezeNo}
-                        >
-                          {GIFT_CARD_MAP[field].full}
-                        </TableCeil>
-                      );
-                    })}
-                    <Th
-                      right={0}
-                      position='sticky'
-                      maxW='100px'
-                      minW='100px'
-                      backgroundColor='gray.300'
-                      borderTopRightRadius={6}
-                      borderBottomRightRadius={6}
-                      textTransform='capitalize'
-                    >
+                    <Th textTransform='capitalize' bg='gray.300'>
+                      Id
+                    </Th>
+                    <Th textTransform='capitalize' bg='gray.300'>
+                      Created At
+                    </Th>
+                    <Th textTransform='capitalize' bg='gray.300'>
+                      Full Name
+                    </Th>
+                    <Th textTransform='capitalize' bg='gray.300'>
+                      Phone Number
+                    </Th>
+                    <Th textTransform='capitalize' bg='gray.300'>
+                      Email
+                    </Th>
+                    <Th textTransform='capitalize' bg='gray.300'>
+                      Birth Date
+                    </Th>
+                    <Th textTransform='capitalize' bg='gray.300'>
+                      Social Media
+                    </Th>
+                    <Th textTransform='capitalize' bg='gray.300'>
+                      Notes
+                    </Th>
+                    <Th textTransform='capitalize' bg='gray.300'>
                       Actions
                     </Th>
                   </Tr>
@@ -277,45 +208,36 @@ const Cryptos = () => {
                     <span>{(error as Error).message}</span>
                   ) : (
                     <>
-                      {data.data.data.map((single: I_Item) => (
+                      {data.data.data.map((single) => (
                         <Tr key={single._id}>
-                          {selected.map((field, index) => {
-                            const [output, fullStr] = truncate(
-                              single[field],
-                              16,
-                              GIFT_CARD_MAP[field].type
-                            );
-                            if (index < freezeNo) {
-                              return (
-                                <Td
-                                  position='sticky'
-                                  maxW={200}
-                                  minW={200}
-                                  left={200 * index}
-                                  backgroundColor='gray.50'
-                                  key={index}
-                                >
-                                  <Tooltip
-                                    label={fullStr}
-                                    aria-label='A tooltip'
-                                  >
-                                    <span>{output}</span>
-                                  </Tooltip>
-                                </Td>
-                              );
-                            } else {
-                              return <Td key={index}>{output}</Td>;
-                            }
-                          })}
-                          <Td
-                            right={0}
-                            position='sticky'
-                            maxW='100px'
-                            minW='100px'
-                            textTransform='capitalize'
-                            bg='gray.50'
-                            _hover={{ zIndex: 1 }}
-                          >
+                          <Td>
+                            <Tooltip label={single._id} aria-label='Tooltop'>
+                              <span>
+                                <Link href={`/customers/${single._id}`}>
+                                  {single._id.slice(0, 16) + '...'}
+                                </Link>
+                              </span>
+                            </Tooltip>
+                          </Td>
+                          <Td>{single.createdAt}</Td>
+                          <Td>{`${single.firstName} ${single?.lastName}`}</Td>
+                          <Td>
+                            {single.profile.phoneNumbers.length > 0 &&
+                              single.profile.phoneNumbers[0]}
+                          </Td>
+                          <Td>{single.email}</Td>
+                          <Td>{single.profile.dob}</Td>
+                          <Td>
+                            {single.profile.socialMedias.length > 0 && (
+                              <ExternalLink
+                                href={`http://${single.profile.socialMedias[0].link}`}
+                              >
+                                {`${single.firstName} ${single.lastName}`}
+                              </ExternalLink>
+                            )}
+                          </Td>
+                          <Td>{single.notes ? single.notes : '-'}</Td>
+                          <Td>
                             <Menu>
                               <MenuButton
                                 as={IconButton}
@@ -327,7 +249,7 @@ const Cryptos = () => {
                               />
                               <MenuList>
                                 <Link
-                                  href={`/giftcards/${single._id}/edit`}
+                                  href={`/accounts/${single._id}/edit`}
                                   passHref
                                 >
                                   <MenuItem>Edit</MenuItem>
@@ -335,6 +257,7 @@ const Cryptos = () => {
                                 <>
                                   <MenuItem
                                     onClick={() => {
+                                      // mutate(single._id);
                                       currentItem.current = single._id;
                                       onOpen2();
                                     }}

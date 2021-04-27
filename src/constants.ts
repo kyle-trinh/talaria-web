@@ -514,6 +514,17 @@ const GIFT_CARD_MAP = {
   },
 };
 
+const USER_MAP = {
+  _id: {
+    full: 'id',
+    type: 'internalLink',
+  },
+  createdAt: {
+    full: 'created at',
+    type: 'string',
+  },
+};
+
 export {
   BASE_URL,
   ITEM_FIELD_MAP,
@@ -531,4 +542,5 @@ export {
   GIFT_CARD_DEFAULT,
   GIFT_CARD_FIELDS,
   GIFT_CARD_MAP,
+  USER_MAP,
 };
