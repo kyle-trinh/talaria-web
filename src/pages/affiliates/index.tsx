@@ -80,10 +80,10 @@ const Cryptos = () => {
   const currentItem = useRef('');
   const [fieldName, fieldOrder] = sort.split(':');
   const { status, data, error } = useQuery(
-    ['customers', page, selected, sort, limit],
+    ['affiliates', page, selected, sort, limit],
     () =>
       client(
-        `${BASE_URL}/users?role=customer&page=${page}&limit=${limit}&sort=${
+        `${BASE_URL}/users?role=affiliate&page=${page}&limit=${limit}&sort=${
           fieldOrder === 'desc' ? '-' : ''
         }${fieldName} ${filter && `&${filter}`}`
       )
@@ -115,7 +115,7 @@ const Cryptos = () => {
     {
       onSuccess: () => {
         queryClient.invalidateQueries([
-          'customers',
+          'affiliates',
           page,
           selected,
           sort,
@@ -143,8 +143,8 @@ const Cryptos = () => {
       >
         <Box>
           <HStack spacing={2} justifyContent='flex-end'>
-            <NextLink href='/customers/new' passHref>
-              <Button colorScheme='teal'>Add customers +</Button>
+            <NextLink href='/affiliates/new' passHref>
+              <Button colorScheme='teal'>Add affiliates +</Button>
             </NextLink>
             <Sort
               sortable={['_id', 'createdAt']}
@@ -160,7 +160,7 @@ const Cryptos = () => {
           <Box marginTop={8} w='100%'>
             <Box
               position='relative'
-              overflow={`${selected.length > 8 ? 'auto' : 'hidden'} hidden`}
+              overflow='auto hidden'
               whiteSpace='nowrap'
               minH='500px'
               fontSize='14px'
@@ -245,7 +245,7 @@ const Cryptos = () => {
                               />
                               <MenuList>
                                 <Link
-                                  href={`/customers/${single._id}/edit`}
+                                  href={`/affiliates/${single._id}/edit`}
                                   passHref
                                 >
                                   <MenuItem>Edit</MenuItem>
