@@ -133,8 +133,8 @@ const Cryptos = () => {
 
   return (
     <>
-      <Header title='Warehouses' />
-      <ContentHeader title='Warehouses' />
+      <Header title='Bills' />
+      <ContentHeader title='Bills' />
       <Box
         gridArea='main'
         bg='white'
@@ -148,7 +148,7 @@ const Cryptos = () => {
       >
         <Box>
           <HStack spacing={2} justifyContent='flex-end'>
-            <NextLink href='/bill/new' passHref>
+            <NextLink href='/bills/new' passHref>
               <Button colorScheme='teal'>Add Bills +</Button>
             </NextLink>
             <Sort
@@ -157,11 +157,6 @@ const Cryptos = () => {
               map={USER_MAP}
             />
           </HStack>
-          {/* {status === "loading" ? (
-            <Spinner position="absolute" top="50%" left="50%" />
-          ) : status === "error" ? (
-            <span>{(error as Error).message}</span>
-          ) : ( */}
           <Box marginTop={8} w='100%'>
             <Box
               position='relative'
@@ -217,9 +212,9 @@ const Cryptos = () => {
                           <Td>
                             <Tooltip label={single._id} aria-label='Tooltop'>
                               <span>
-                                <Link href={`/bills/${single._id}`}>
+                                <NextLink href={`/bills/${single._id}`}>
                                   {single._id.slice(0, 16) + '...'}
-                                </Link>
+                                </NextLink>
                               </span>
                             </Tooltip>
                           </Td>
