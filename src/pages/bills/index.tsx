@@ -38,6 +38,9 @@ import {
   List,
   ListIcon,
   Link,
+  FormControl,
+  Input,
+  FormLabel,
 } from '@chakra-ui/react';
 import React, { useState, useRef } from 'react';
 import { RiMoreFill } from 'react-icons/ri';
@@ -55,6 +58,9 @@ import { Sort } from '../../components/Options';
 import ContentHeader from '../../components/ContentHeader';
 import NextLink from 'next/link';
 import ExternalLink from '../../components/ExternalLink';
+import { Field, Form, Formik } from 'formik';
+import { InputField } from '../../components/InputField';
+import BillRow from '../../components/BillRow';
 const layout = Array.from({ length: 8 });
 
 const LoadingLayout = () => (
@@ -82,12 +88,6 @@ const Cryptos = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
   const [filter, setFilter] = useState('');
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isOpen2,
-    onOpen: onOpen2,
-    onClose: onClose2,
-  } = useDisclosure();
   const currentItem = useRef('');
   const [fieldName, fieldOrder] = sort.split(':');
   const { status, data, error } = useQuery(
@@ -111,12 +111,35 @@ const Cryptos = () => {
 
   const queryClient = useQueryClient();
 
+  const reloadPage = () =>
+    queryClient.invalidateQueries(['bills', page, selected, sort, limit]);
+
   const {
     mutate: deleteItem,
     error: deleteError,
     isError: isDeleteError,
     isLoading: isDeleteLoading,
     reset: resetDelete,
+  } = useMutation(
+    (data) =>
+      client(`${BASE_URL}/bills/${data}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['bills', page, selected, sort, limit]);
+        onClose2();
+      },
+    }
+  );
+
+  const {
+    mutate: payBill,
+    error: payError,
+    isError: isPayError,
+    isLoading: isPayLoading,
+    reset: resetPay,
   } = useMutation(
     (data) =>
       client(`${BASE_URL}/bills/${data}`, {
@@ -187,10 +210,10 @@ const Cryptos = () => {
                       Status
                     </Th>
                     <Th textTransform='capitalize' bg='gray.300'>
-                      Money received
+                      Received
                     </Th>
                     <Th textTransform='capitalize' bg='gray.300'>
-                      Total Bill VND
+                      Total Bill
                     </Th>
                     <Th textTransform='capitalize' bg='gray.300'>
                       Notes
@@ -208,138 +231,11 @@ const Cryptos = () => {
                   ) : (
                     <>
                       {data.data.data.map((single) => (
-                        <Tr key={single._id}>
-                          <Td>
-                            <Tooltip label={single._id} aria-label='Tooltop'>
-                              <span>
-                                <NextLink href={`/bills/${single._id}`}>
-                                  {single._id.slice(0, 16) + '...'}
-                                </NextLink>
-                              </span>
-                            </Tooltip>
-                          </Td>
-                          <Td>{single.createdAt}</Td>
-                          <Td>
-                            <Popover>
-                              <PopoverTrigger>
-                                <Button>Click here</Button>
-                              </PopoverTrigger>
-                              <PopoverContent>
-                                <PopoverArrow />
-                                <PopoverCloseButton />
-                                <PopoverHeader>Item list</PopoverHeader>
-                                <PopoverBody>
-                                  <List spacing={3}>
-                                    {single.items.map((item) => (
-                                      <NextLink
-                                        href={`/items/${single._id}`}
-                                        passHref
-                                      >
-                                        <Link>
-                                          <ListItem>
-                                            <ListIcon
-                                              as={BiCheckCircle}
-                                              color='green.500'
-                                            />
-                                            {`(${item.name} - ${item.pricePerItem}) x ${item.quantity}`}
-                                          </ListItem>
-                                        </Link>
-                                      </NextLink>
-                                    ))}
-                                  </List>
-                                </PopoverBody>
-                              </PopoverContent>
-                            </Popover>
-                          </Td>
-                          <Td>
-                            <NextLink
-                              href={`/customers/${single.customer._id}`}
-                            >
-                              {`${single.customer.firstName} ${single.customer.lastName}`}
-                            </NextLink>
-                          </Td>
-                          <Td>
-                            <NextLink
-                              href={`/affiliates/${single.affiliate._id}`}
-                            >
-                              {`${single.affiliate.firstName} ${single.affiliate.lastName}`}
-                            </NextLink>
-                          </Td>
-                          <Td>{single.status}</Td>
-                          <Td>{single.moneyReceived}</Td>
-                          <Td>{single.actCharge}</Td>
-                          <Td>{single.notes ? single.notes : '-'}</Td>
-                          <Td>
-                            <Menu>
-                              <MenuButton
-                                as={IconButton}
-                                aria-label='More options'
-                                icon={<RiMoreFill />}
-                                variant='outline'
-                                size='xs'
-                                borderRadius='50%'
-                              />
-                              <MenuList>
-                                <Link
-                                  href={`/bills/${single._id}/edit`}
-                                  passHref
-                                >
-                                  <MenuItem>Edit</MenuItem>
-                                </Link>
-                                <>
-                                  <MenuItem
-                                    onClick={() => {
-                                      // mutate(single._id);
-                                      currentItem.current = single._id;
-                                      onOpen2();
-                                    }}
-                                  >
-                                    Delete
-                                  </MenuItem>
-                                  <Modal
-                                    isOpen={isOpen2}
-                                    onClose={() => {
-                                      onClose2();
-                                      resetDelete();
-                                    }}
-                                    isCentered
-                                  >
-                                    <ModalOverlay />
-                                    <ModalContent>
-                                      <ModalHeader>Alert</ModalHeader>
-                                      <ModalCloseButton />
-                                      <ModalBody>
-                                        {isDeleteError && (
-                                          <Alert status='error'>
-                                            <AlertIcon />
-                                            <AlertTitle>
-                                              {(deleteError as Error).message}
-                                            </AlertTitle>
-                                          </Alert>
-                                        )}
-                                        <p>Are you sure you want to delete?</p>
-                                      </ModalBody>
-                                      <ModalFooter>
-                                        <Button
-                                          isLoading={isDeleteLoading}
-                                          colorScheme='red'
-                                          onClick={() => {
-                                            deleteItem(currentItem.current);
-                                          }}
-                                        >
-                                          Delete
-                                        </Button>
-                                        <Button onClick={onClose2}>
-                                          Cancel
-                                        </Button>
-                                      </ModalFooter>
-                                    </ModalContent>
-                                  </Modal>
-                                </>
-                              </MenuList>
-                            </Menu>
-                          </Td>
-                        </Tr>
+                        <BillRow
+                          reloadPage={reloadPage}
+                          key={single._id}
+                          single={single}
+                        />
                       ))}
                       {Array.from({ length: 8 - data.data.data.length }).map(
                         (item, i) => (

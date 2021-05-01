@@ -64,7 +64,7 @@ const LoadingLayout = () => (
     ))}
   </>
 );
-const Cryptos = () => {
+const Customers = () => {
   const [freezeNo, setFreezeNo] = useState(4);
   const [selected, setSelected] = useState(GIFT_CARD_DEFAULT);
   const [sort, setSort] = useState('_id:desc');
@@ -250,6 +250,12 @@ const Cryptos = () => {
                                 >
                                   <MenuItem>Edit</MenuItem>
                                 </Link>
+                                <Link
+                                  href={`/bills/new?customer=${single._id}`}
+                                  passHref
+                                >
+                                  <MenuItem>Create a bill</MenuItem>
+                                </Link>
                                 <>
                                   <MenuItem
                                     onClick={() => {
@@ -309,7 +315,7 @@ const Cryptos = () => {
                         (item, i) => (
                           <Tr key={i} height='57px'>
                             {selected.map((field, index) => (
-                              <Td></Td>
+                              <Td key={index}></Td>
                             ))}
                             <Td
                               right={0}
@@ -360,4 +366,4 @@ const Cryptos = () => {
   );
 };
 
-export default Cryptos;
+export default Customers;
