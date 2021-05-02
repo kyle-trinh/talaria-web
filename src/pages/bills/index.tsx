@@ -114,46 +114,6 @@ const Cryptos = () => {
   const reloadPage = () =>
     queryClient.invalidateQueries(['bills', page, selected, sort, limit]);
 
-  const {
-    mutate: deleteItem,
-    error: deleteError,
-    isError: isDeleteError,
-    isLoading: isDeleteLoading,
-    reset: resetDelete,
-  } = useMutation(
-    (data) =>
-      client(`${BASE_URL}/bills/${data}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      }),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['bills', page, selected, sort, limit]);
-        onClose2();
-      },
-    }
-  );
-
-  const {
-    mutate: payBill,
-    error: payError,
-    isError: isPayError,
-    isLoading: isPayLoading,
-    reset: resetPay,
-  } = useMutation(
-    (data) =>
-      client(`${BASE_URL}/bills/${data}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      }),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['bills', page, selected, sort, limit]);
-        onClose2();
-      },
-    }
-  );
-
   return (
     <>
       <Header title='Bills' />

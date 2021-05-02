@@ -78,6 +78,25 @@ export default function BillRow({ single, reloadPage }) {
       },
     }
   );
+  const {
+    mutate: deleteItem,
+    error: deleteError,
+    isError: isDeleteError,
+    isLoading: isDeleteLoading,
+    reset: resetDelete,
+  } = useMutation(
+    (data) =>
+      client(`${BASE_URL}/bills/${data}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
+    {
+      onSuccess: () => {
+        reloadPage();
+        onClose2();
+      },
+    }
+  );
 
   return (
     <>
@@ -155,7 +174,6 @@ export default function BillRow({ single, reloadPage }) {
                   onClick={() => {
                     onOpen();
                     currentItem.current = single._id;
-                    payReset();
                   }}
                 >
                   Pay
@@ -164,8 +182,7 @@ export default function BillRow({ single, reloadPage }) {
               <>
                 <MenuItem
                   onClick={() => {
-                    // mutate(single._id);
-                    //   currentItem.current = single._id;
+                    currentItem.current = single._id;
                     onOpen2();
                   }}
                 >
@@ -175,7 +192,7 @@ export default function BillRow({ single, reloadPage }) {
                   isOpen={isOpen2}
                   onClose={() => {
                     onClose2();
-                    //   resetDelete();
+                    resetDelete();
                   }}
                   isCentered
                 >
@@ -185,23 +202,13 @@ export default function BillRow({ single, reloadPage }) {
                     <ModalCloseButton />
                     <ModalBody>
                       <p>Are you sure you want to delete?</p>
-                      <Formik
-                        initialValues={{ amount: 0 }}
-                        onSubmit={(values) => console.log(values)}
-                      >
-                        {(props) => (
-                          <Form>
-                            <InputField name='amount' type='number' />
-                          </Form>
-                        )}
-                      </Formik>
                     </ModalBody>
                     <ModalFooter>
                       <Button
-                        //   isLoading={isDeleteLoading}
+                        isLoading={isDeleteLoading}
                         colorScheme='red'
                         onClick={() => {
-                          // deleteItem(currentItem.current);
+                          deleteItem(currentItem.current);
                         }}
                       >
                         Delete
@@ -213,7 +220,14 @@ export default function BillRow({ single, reloadPage }) {
               </>
             </MenuList>
           </Menu>
-          <Modal isOpen={isOpen} onClose={onClose} isCentered>
+          <Modal
+            isOpen={isOpen}
+            onClose={() => {
+              onClose();
+              payReset();
+            }}
+            isCentered
+          >
             <ModalOverlay />
             <ModalContent>
               <Formik
