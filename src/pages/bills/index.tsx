@@ -52,7 +52,13 @@ import {
   GIFT_CARD_DEFAULT,
   USER_MAP,
 } from '../../constants';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  QueryClient,
+} from 'react-query';
+import { dehydrate } from 'react-query/hydration';
 import { client } from '../../utils/api-client';
 import { Sort } from '../../components/Options';
 import ContentHeader from '../../components/ContentHeader';
@@ -61,6 +67,7 @@ import ExternalLink from '../../components/ExternalLink';
 import { Field, Form, Formik } from 'formik';
 import { InputField } from '../../components/InputField';
 import BillRow from '../../components/BillRow';
+import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 const layout = Array.from({ length: 8 });
 
 const LoadingLayout = () => (
@@ -89,6 +96,12 @@ const Cryptos = () => {
   const [limit] = useState(8);
   const [filter, setFilter] = useState('');
   const currentItem = useRef('');
+  const { data: user, isLoading: userIsLoading } = useQuery('userProfile', () =>
+    client('http://localhost:4444/api/v1/users/me', {
+      method: 'GET',
+      credentials: 'include',
+    })
+  );
   const [fieldName, fieldOrder] = sort.split(':');
   const { status, data, error } = useQuery(
     ['bills', page, selected, sort, limit],
@@ -117,7 +130,11 @@ const Cryptos = () => {
   return (
     <>
       <Header title='Bills' />
-      <ContentHeader title='Bills' />
+      <ContentHeader
+        title='Bills'
+        user={user.data.data}
+        isLoading={userIsLoading}
+      />
       <Box
         gridArea='main'
         bg='white'
@@ -250,6 +267,34 @@ const Cryptos = () => {
       </Box>
     </>
   );
+};
+export const getServerSideProps: GetServerSideProps = async function ({
+  req,
+  res,
+}: GetServerSidePropsContext) {
+  const queryClient = new QueryClient();
+  try {
+    await queryClient.fetchQuery('userProfile', () =>
+      client('http://localhost:4444/api/v1/users/me', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
+        },
+      })
+    );
+
+    return {
+      props: { dehydratedState: dehydrate(queryClient) },
+    };
+  } catch (err) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
 };
 
 export default Cryptos;
