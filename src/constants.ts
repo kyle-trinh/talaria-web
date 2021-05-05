@@ -237,7 +237,6 @@ const ITEM_SORTABLE = [
 ];
 
 const ITEM_DEFAULT = [
-  '_id',
   'createdAt',
   'name',
   'link',
@@ -248,7 +247,6 @@ const ITEM_DEFAULT = [
 ];
 
 const ACCOUNT_FIELDS = [
-  '_id',
   'createdAt',
   'name',
   'website',
@@ -261,7 +259,7 @@ const ACCOUNT_FIELDS = [
 const ACCOUNT_FIELD_MAP = {
   _id: {
     type: 'internalLink',
-    full: 'id',
+    full: 'Id',
   },
   createdAt: {
     type: 'string',
@@ -521,6 +519,10 @@ const USER_MAP = {
   },
   createdAt: {
     full: 'created at',
+    type: 'string',
+  },
+  role: {
+    full: 'role',
     type: 'string',
   },
 };

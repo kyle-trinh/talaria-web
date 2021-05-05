@@ -266,6 +266,7 @@ export default function AffiliateDetail({ id }) {
                           </PopoverContent>
                         </Popover>
                       </Box>
+
                       <Box>
                         <Popover>
                           <PopoverTrigger>
@@ -374,87 +375,94 @@ export default function AffiliateDetail({ id }) {
               )
             )}
           </HStack>
-          <Box>
-            <HStack justifyContent='space-between' alignItems='center'>
-              <Text as='h2' fontWeight='bold' fontSize='32px' color='gray.600'>
-                Commissions
-              </Text>
-            </HStack>
-            {commissionStatus === 'loading' ? null : commissionStatus ===
-              'error' ? (
-              <Text>Error</Text>
-            ) : (
-              commissionStatus === 'success' && (
-                <>
-                  <Center
-                    fontWeight='bold'
-                    color='teal'
-                    my='8px'
-                    fontSize='20px'
-                  >
-                    <Editable
-                      defaultValue={`${currentYear}-${currentMonth}`}
-                      onSubmit={(value) => {
-                        setCurrentTime(value);
-                      }}
-                      onChange={(value) => {
-                        setCurrentTime(value);
-                      }}
+          {affiliate.role !== 'customer' && (
+            <Box>
+              <HStack justifyContent='space-between' alignItems='center'>
+                <Text
+                  as='h2'
+                  fontWeight='bold'
+                  fontSize='32px'
+                  color='gray.600'
+                >
+                  Commissions
+                </Text>
+              </HStack>
+              {commissionStatus === 'loading' ? null : commissionStatus ===
+                'error' ? (
+                <Text>Error</Text>
+              ) : (
+                commissionStatus === 'success' && (
+                  <>
+                    <Center
+                      fontWeight='bold'
+                      color='teal'
+                      my='8px'
+                      fontSize='20px'
                     >
-                      <EditablePreview />
-                      <EditableInput type='month' />
-                    </Editable>
-                  </Center>
-                  <Table>
-                    <Thead>
-                      <Tr>
-                        <Th textTransform='capitalize' bg='gray.300'>
-                          Created at
-                        </Th>
-                        <Th textTransform='capitalize' bg='gray.300'>
-                          Amount
-                        </Th>
-                        <Th textTransform='capitalize' bg='gray.300'>
-                          Bill
-                        </Th>
-                        <Th textTransform='capitalize' bg='gray.300'>
-                          Status
-                        </Th>
-                        <Th textTransform='capitalize' bg='gray.300'>
-                          Actions
-                        </Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {dataCommission.data.data.length === 0 && (
+                      <Editable
+                        defaultValue={`${currentYear}-${currentMonth}`}
+                        onSubmit={(value) => {
+                          setCurrentTime(value);
+                        }}
+                        onChange={(value) => {
+                          setCurrentTime(value);
+                        }}
+                      >
+                        <EditablePreview />
+                        <EditableInput type='month' />
+                      </Editable>
+                    </Center>
+                    <Table>
+                      <Thead>
                         <Tr>
-                          <Td>No commissions yet!</Td>
+                          <Th textTransform='capitalize' bg='gray.300'>
+                            Created at
+                          </Th>
+                          <Th textTransform='capitalize' bg='gray.300'>
+                            Amount
+                          </Th>
+                          <Th textTransform='capitalize' bg='gray.300'>
+                            Bill
+                          </Th>
+                          <Th textTransform='capitalize' bg='gray.300'>
+                            Status
+                          </Th>
+                          <Th textTransform='capitalize' bg='gray.300'>
+                            Actions
+                          </Th>
                         </Tr>
-                      )}
-                      {dataCommission.data.data.map((commission) => (
-                        <CommissionRow
-                          key={commission._id}
-                          commission={commission}
-                          currentTime={currentTime}
-                        />
-                      ))}
-                    </Tbody>
-                  </Table>
-                  <Center mb='32px'>
-                    <Button
-                      mt='8px'
-                      colorScheme='teal'
-                      onClick={() => pay()}
-                      isLoading={isPayLoading}
-                      isDisabled={!isPayable(dataCommission.data.data)}
-                    >
-                      Pay for this month
-                    </Button>
-                  </Center>
-                </>
-              )
-            )}
-          </Box>
+                      </Thead>
+                      <Tbody>
+                        {dataCommission.data.data.length === 0 && (
+                          <Tr>
+                            <Td>No commissions yet!</Td>
+                          </Tr>
+                        )}
+                        {dataCommission.data.data.map((commission) => (
+                          <CommissionRow
+                            key={commission._id}
+                            commission={commission}
+                            currentTime={currentTime}
+                          />
+                        ))}
+                      </Tbody>
+                    </Table>
+                    <Center mb='32px'>
+                      <Button
+                        mt='8px'
+                        colorScheme='teal'
+                        onClick={() => pay()}
+                        isLoading={isPayLoading}
+                        isDisabled={!isPayable(dataCommission.data.data)}
+                      >
+                        Pay for this month
+                      </Button>
+                    </Center>
+                  </>
+                )
+              )}
+            </Box>
+          )}
           <Bills id={id} />
         </Box>
       </Box>

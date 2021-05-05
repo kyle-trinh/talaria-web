@@ -62,15 +62,15 @@ const menuItems = [
     icon: RiBitCoinFill,
   },
   {
-    pathname: 'customers',
-    name: 'Customers',
+    pathname: 'users',
+    name: 'Users',
     icon: ImUser,
   },
-  {
-    pathname: 'affiliates',
-    name: 'Affiliates',
-    icon: IoGitNetworkSharp,
-  },
+  // {
+  //   pathname: 'affiliates',
+  //   name: 'Affiliates',
+  //   icon: IoGitNetworkSharp,
+  // },
   {
     pathname: 'warehouses',
     name: 'Warehouses',

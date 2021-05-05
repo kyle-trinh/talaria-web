@@ -27,9 +27,15 @@ interface Props {
   title: string;
   user: any;
   isLoading: boolean;
+  status: string;
 }
 
-export default function ContentHeader({ title, isLoading, user }: Props) {
+export default function ContentHeader({
+  title,
+  isLoading,
+  user,
+  status,
+}: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const {

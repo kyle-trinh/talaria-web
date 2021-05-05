@@ -54,7 +54,7 @@ interface Item_Interface {
   quantity: number;
 }
 
-export default function NewItem() {
+export default function NewBill() {
   const router = useRouter();
   console.log(router.query.customer);
   const queryClient = useQueryClient();
@@ -160,7 +160,11 @@ export default function NewItem() {
                 affiliate: '',
               }}
               onSubmit={(values) => {
-                createBill({ ...values, items: items.map((item) => item._id) });
+                createBill({
+                  ...values,
+                  items: items.map((item) => item._id),
+                  customTax: values.customTax / 100,
+                });
               }}
             >
               {(props) => (

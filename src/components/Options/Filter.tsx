@@ -9,10 +9,10 @@ import {
   PopoverBody,
   PopoverFooter,
   VStack,
-} from "@chakra-ui/react";
-import { Formik, Form } from "formik";
-import React, { Dispatch, PropsWithChildren, SetStateAction } from "react";
-import { RiFilter2Fill } from "react-icons/ri";
+} from '@chakra-ui/react';
+import { Formik, Form } from 'formik';
+import React, { Dispatch, PropsWithChildren, SetStateAction } from 'react';
+import { RiFilter2Fill } from 'react-icons/ri';
 
 interface valuesField {
   [key: string]: string;
@@ -21,17 +21,19 @@ interface valuesField {
 interface FilterProps {
   setFilter: Dispatch<SetStateAction<string>>;
   defaultValues: valuesField;
+  defaultHeight?: string;
 }
 
 export default function Filter({
   setFilter,
   defaultValues,
+  defaultHeight,
   children,
 }: PropsWithChildren<FilterProps>) {
   const [filterOpen, setFilterOpen] = React.useState(false);
   return (
     <Popover
-      placement="bottom-end"
+      placement='bottom-end'
       returnFocusOnClose={false}
       isOpen={filterOpen}
       onClose={() => setFilterOpen(false)}
@@ -39,7 +41,7 @@ export default function Filter({
       onOpen={() => setFilterOpen(true)}
     >
       <PopoverTrigger>
-        <Button _hover={{ backgroundColor: "gray.300" }}>
+        <Button _hover={{ backgroundColor: 'gray.300' }}>
           <Icon as={RiFilter2Fill} />
         </Button>
       </PopoverTrigger>
@@ -50,13 +52,13 @@ export default function Filter({
           for (const item in values) {
             if (values[item]) {
               arr.push(
-                `${item.replace("From", "[gte]").replace("To", "[lte]")}=${
+                `${item.replace('From', '[gte]').replace('To', '[lte]')}=${
                   values[item]
                 }`
               );
             }
           }
-          setFilter(arr.join("&"));
+          setFilter(arr.join('&'));
           setFilterOpen(false);
         }}
       >
@@ -65,20 +67,20 @@ export default function Filter({
             <PopoverContent>
               <PopoverCloseButton />
               <PopoverHeader>Make selection</PopoverHeader>
-              <PopoverBody height="400px" overflow="auto">
+              <PopoverBody height={defaultHeight || '400px'} overflow='auto'>
                 {children}
               </PopoverBody>
               <PopoverFooter>
-                <VStack alignItems="stretch">
-                  <Button type="submit" colorScheme="teal">
+                <VStack alignItems='stretch'>
+                  <Button type='submit' colorScheme='teal'>
                     Submit
                   </Button>
                   <Button
                     onClick={() => {
                       for (const el in defaultValues) {
-                        props.setFieldValue(el, "");
+                        props.setFieldValue(el, '');
                       }
-                      setFilter("");
+                      setFilter('');
                       setFilterOpen(false);
                     }}
                   >
