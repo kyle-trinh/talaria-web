@@ -24,22 +24,12 @@ import { useRef } from 'react';
 import { BASE_URL } from '../constants';
 import NextLink from 'next/link';
 import ExternalLink from '../components/ExternalLink';
+import { useMe } from '../hooks/useMe';
 
 const Profile = () => {
   const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
-  const {
-    data: {
-      data: { data: user },
-    },
-    isLoading,
-    status,
-  } = useQuery('userProfile', () =>
-    client('http://localhost:4444/api/v1/users/me', {
-      method: 'GET',
-      credentials: 'include',
-    })
-  );
+  const { user, isLoading, status } = useMe();
 
   const {
     mutate,

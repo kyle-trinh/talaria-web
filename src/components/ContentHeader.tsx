@@ -67,7 +67,7 @@ export default function ContentHeader({ title, isLoading, user }: Props) {
         {title}
       </Box>
       <Box>
-        {!isLoading && (
+        {!isLoading && user && (
           <Menu>
             <MenuButton>
               <Image

@@ -1,12 +1,12 @@
-import { Button, Box, Alert, AlertIcon, AlertTitle } from "@chakra-ui/react";
-import { useMutation, QueryClient } from "react-query";
-import { useRouter } from "next/router";
-import { GetServerSideProps, GetServerSidePropsContext } from "next";
-import { client } from "../utils/api-client";
-import { dehydrate } from "react-query/hydration";
-import { Form, Formik } from "formik";
-import { InputField } from "../components/InputField";
-import Link from "next/link";
+import { Button, Box, Alert, AlertIcon, AlertTitle } from '@chakra-ui/react';
+import { useMutation, QueryClient } from 'react-query';
+import { useRouter } from 'next/router';
+import { GetServerSideProps, GetServerSidePropsContext } from 'next';
+import { client } from '../utils/api-client';
+import { dehydrate } from 'react-query/hydration';
+import { Form, Formik } from 'formik';
+import { InputField } from '../components/InputField';
+import Link from 'next/link';
 
 interface LoginProps {}
 
@@ -14,28 +14,28 @@ const Login = () => {
   const route = useRouter();
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
     (data: { email: string; password: string }) =>
-      client("http://localhost:4444/api/v1/users/signin", {
-        method: "POST",
+      client('http://localhost:4444/api/v1/users/signin', {
+        method: 'POST',
         body: JSON.stringify(data),
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        credentials: "include",
+        credentials: 'include',
       }),
     {
       onSuccess: () => {
-        route.push("/profile");
+        route.push('/me');
       },
     }
   );
 
   return (
-    <Box maxW="400" w="100%">
-      <Box textStyle="h1" textAlign="center" mb={20} as="h1">
+    <Box maxW='400' w='100%'>
+      <Box textStyle='h1' textAlign='center' mb={20} as='h1'>
         Login
       </Box>
       <Formik
-        initialValues={{ email: "", password: "" }}
+        initialValues={{ email: '', password: '' }}
         onSubmit={(values) => {
           mutate(values);
         }}
@@ -43,41 +43,41 @@ const Login = () => {
         {() => (
           <Form>
             {isError ? (
-              <Alert status="error">
+              <Alert status='error'>
                 <AlertIcon />
                 <AlertTitle mr={2}>{(error as Error).message}</AlertTitle>
               </Alert>
             ) : null}
             {isSuccess ? (
-              <Alert status="success">
+              <Alert status='success'>
                 <AlertIcon />
                 <AlertTitle mr={2}>Login successful! Redirecting...</AlertTitle>
               </Alert>
             ) : null}
             <InputField
-              name="email"
-              placeholder="Email"
-              label="Email"
-              type="email"
+              name='email'
+              placeholder='Email'
+              label='Email'
+              type='email'
               mb={5}
             />
             <InputField
-              name="password"
-              placeholder="Password"
-              label="Password"
-              type="password"
+              name='password'
+              placeholder='Password'
+              label='Password'
+              type='password'
               mb={5}
             />
             <Button
-              colorScheme="teal"
-              type="submit"
+              colorScheme='teal'
+              type='submit'
               isLoading={isLoading}
-              loadingText="Submitting"
+              loadingText='Submitting'
             >
               Login
             </Button>
-            <Button colorScheme="gray" ml={3}>
-              <Link href="/register">
+            <Button colorScheme='gray' ml={3}>
+              <Link href='/register'>
                 <a>Register</a>
               </Link>
             </Button>
@@ -94,10 +94,10 @@ export const getServerSideProps: GetServerSideProps = async function ({
   if (req.cookies?.jwt) {
     try {
       const queryClient = new QueryClient();
-      await queryClient.fetchQuery("userProfile", () =>
-        client("http://localhost:4444/api/v1/users/me", {
-          method: "GET",
-          credentials: "include",
+      await queryClient.fetchQuery('userProfile', () =>
+        client('http://localhost:4444/api/v1/users/me', {
+          method: 'GET',
+          credentials: 'include',
           headers: {
             Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
           },
@@ -107,7 +107,7 @@ export const getServerSideProps: GetServerSideProps = async function ({
       return {
         props: { dehydratedState: dehydrate(queryClient) },
         redirect: {
-          destination: "/profile",
+          destination: '/profile',
           permanenet: false,
         },
       };

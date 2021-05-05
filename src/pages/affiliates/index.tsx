@@ -209,7 +209,7 @@ const Cryptos = () => {
                           <Td>
                             <Tooltip label={single._id} aria-label='Tooltop'>
                               <span>
-                                <Link href={`/customers/${single._id}`}>
+                                <Link href={`/affiliates/${single._id}`}>
                                   {single._id.slice(0, 16) + '...'}
                                 </Link>
                               </span>
