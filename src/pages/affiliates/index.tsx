@@ -309,7 +309,7 @@ const Cryptos = () => {
                         (item, i) => (
                           <Tr key={i} height='57px'>
                             {selected.map((field, index) => (
-                              <Td></Td>
+                              <Td key={index}></Td>
                             ))}
                             <Td
                               right={0}

@@ -41,11 +41,22 @@ import {
   PopoverCloseButton,
   Button,
   Tooltip,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  useDisclosure,
 } from '@chakra-ui/react';
 import React from 'react';
 import ExternalLink from '../../../components/ExternalLink';
 import NextLink from 'next/link';
-import { IoPlayBackCircle } from 'react-icons/io5';
+import { FaPercentage, FaAddressCard } from 'react-icons/fa';
+import { RiBankFill } from 'react-icons/ri';
+import { Form, Formik } from 'formik';
+import { InputField } from '../../../components/InputField';
 
 export default function AffiliateDetail({ id }) {
   const router = useRouter();
@@ -167,7 +178,11 @@ export default function AffiliateDetail({ id }) {
                     >
                       Personal Information
                     </Text>
-                    <Grid gridTemplateColumns='repeat(2, 1fr)' gridGap='16px'>
+                    <Grid
+                      gridTemplateColumns='repeat(2, 1fr)'
+                      gridGap='16px'
+                      gridColumnGap='24px'
+                    >
                       <Box>
                         <Title text='Email' />
                         <Text>{affiliate.email}</Text>
@@ -252,7 +267,7 @@ export default function AffiliateDetail({ id }) {
                         <Popover>
                           <PopoverTrigger>
                             <Button
-                              rightIcon={<ImPhone />}
+                              rightIcon={<FaPercentage />}
                               variant='outline'
                               colorScheme='teal'
                               size='sm'
@@ -294,7 +309,7 @@ export default function AffiliateDetail({ id }) {
                         <Popover>
                           <PopoverTrigger>
                             <Button
-                              rightIcon={<ImPhone />}
+                              rightIcon={<RiBankFill />}
                               variant='outline'
                               colorScheme='teal'
                               size='sm'
@@ -325,7 +340,7 @@ export default function AffiliateDetail({ id }) {
                         <Popover>
                           <PopoverTrigger>
                             <Button
-                              rightIcon={<ImPhone />}
+                              rightIcon={<FaAddressCard />}
                               variant='outline'
                               colorScheme='teal'
                               size='sm'
@@ -408,40 +423,17 @@ export default function AffiliateDetail({ id }) {
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {dataCommission.data.data.map((commission) => (
-                        <Tr key={commission._id}>
-                          <Td>{commission.createdAt}</Td>
-                          <Td>{commission.amount}</Td>
-                          <Td>
-                            <NextLink href={`/bills/${commission.bill._id}`}>
-                              {commission.bill._id}
-                            </NextLink>
-                          </Td>
-                          <Td>
-                            <Tag
-                              colorScheme={
-                                commission.status === 'pending'
-                                  ? 'red'
-                                  : commission.status === 'partially-paid'
-                                  ? 'blue'
-                                  : commission.status === 'paid'
-                                  ? 'gray'
-                                  : 'gray'
-                              }
-                            >
-                              {commission.status}
-                            </Tag>
-                          </Td>
-                          <Td>
-                            <Button
-                              size='sm'
-                              colorScheme='blue'
-                              disabled={commission.status === 'paid'}
-                            >
-                              Pay
-                            </Button>
-                          </Td>
+                      {dataCommission.data.data.length === 0 && (
+                        <Tr>
+                          <Td>No commissions yet!</Td>
                         </Tr>
+                      )}
+                      {dataCommission.data.data.map((commission) => (
+                        <CommissionRow
+                          key={commission._id}
+                          commission={commission}
+                          currentTime={currentTime}
+                        />
                       ))}
                     </Tbody>
                   </Table>
@@ -463,6 +455,108 @@ export default function AffiliateDetail({ id }) {
         </Box>
       </Box>
     </>
+  );
+}
+
+function CommissionRow({ commission, currentTime }) {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { mutate, isLoading, status } = useMutation(
+    (data) =>
+      client(`${BASE_URL}/commissions/${commission._id}/pay`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      }),
+    {
+      onSettled: () => {
+        onClose();
+        queryClient.invalidateQueries([
+          'commissions',
+          router.query.id,
+          currentTime,
+        ]);
+      },
+    }
+  );
+  return (
+    <Tr>
+      <Td>{commission.createdAt}</Td>
+      <Td>{commission.amount}</Td>
+      <Td>
+        <NextLink href={`/bills/${commission.bill._id}`}>
+          {commission.bill._id}
+        </NextLink>
+      </Td>
+      <Td>
+        <Tag
+          colorScheme={
+            commission.status === 'pending'
+              ? 'red'
+              : commission.status === 'partially-paid'
+              ? 'blue'
+              : commission.status === 'paid'
+              ? 'gray'
+              : 'gray'
+          }
+        >
+          {commission.status}
+        </Tag>
+      </Td>
+      <Td>
+        <Button
+          size='sm'
+          colorScheme='blue'
+          disabled={commission.status === 'paid'}
+          onClick={onOpen}
+        >
+          Pay
+        </Button>
+        <Modal isOpen={isOpen} onClose={onClose} isCentered>
+          <ModalOverlay />
+          <Formik
+            initialValues={{
+              amount: parseFloat(
+                commission.amount.slice(1).split(',').join('')
+              ),
+            }}
+            onSubmit={(value) => {
+              mutate(value);
+            }}
+          >
+            {() => (
+              <Form>
+                <ModalContent>
+                  <ModalHeader>Enter amount</ModalHeader>
+                  <ModalCloseButton />
+                  <ModalBody>
+                    <InputField
+                      name='amount'
+                      placeholder='Amount'
+                      label='Amount (Edit if you want to pay more)'
+                      type='number'
+                    />
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      colorScheme='teal'
+                      type='submit'
+                      isLoading={isLoading}
+                    >
+                      Submit
+                    </Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Form>
+            )}
+          </Formik>
+        </Modal>
+      </Td>
+    </Tr>
   );
 }
 
