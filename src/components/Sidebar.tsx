@@ -88,8 +88,10 @@ export const Sidebar: React.FC<SidebarProps> = ({}) => {
       flexDirection='column'
       padding='3rem 0'
     >
-      <Box borderRadius={8} mb='50px'>
-        <Image src='/images/logo.png' width={80} height={80} />
+      <Box borderRadius={8} mb='50px' cursor='pointer'>
+        <NextLink href='/'>
+          <Image src='/images/logo.png' width={80} height={80} />
+        </NextLink>
       </Box>
       <VStack spacing={0} w='100%'>
         {menuItems.map((item) => {

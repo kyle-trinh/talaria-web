@@ -123,11 +123,7 @@ export default function BillRow({ single, reloadPage }) {
               <PopoverBody>
                 <List spacing={3}>
                   {single.items.map((item, index) => (
-                    <NextLink
-                      href={`/items/${single._id}`}
-                      passHref
-                      key={index}
-                    >
+                    <NextLink href={`/items/${item._id}`} passHref key={index}>
                       <Link>
                         <ListItem>
                           <ListIcon as={BiCheckCircle} color='green.500' />

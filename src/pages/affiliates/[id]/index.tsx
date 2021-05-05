@@ -3,7 +3,9 @@ import {
   Center,
   Grid,
   HStack,
+  Link,
   List,
+  ListIcon,
   ListItem,
   Text,
 } from '@chakra-ui/layout';
@@ -57,6 +59,7 @@ import { FaPercentage, FaAddressCard } from 'react-icons/fa';
 import { RiBankFill } from 'react-icons/ri';
 import { Form, Formik } from 'formik';
 import { InputField } from '../../../components/InputField';
+import { BiCheckCircle } from 'react-icons/bi';
 
 export default function AffiliateDetail({ id }) {
   const router = useRouter();
@@ -452,9 +455,158 @@ export default function AffiliateDetail({ id }) {
               )
             )}
           </Box>
+          <Bills id={id} />
         </Box>
       </Box>
     </>
+  );
+}
+
+function Bills({ id }) {
+  const [page, setPage] = React.useState(1);
+  const [limit] = React.useState(8);
+  const { data, status, error } = useQuery(['bills', id, page, limit], () =>
+    client(
+      `${BASE_URL}/bills?sort=_id&customer=${id}&page=${page}&limit=${limit}`
+    )
+  );
+
+  return (
+    <Box mb='32px' minH='500px'>
+      <HStack justifyContent='space-between'>
+        <Text
+          as='h2'
+          fontWeight='bold'
+          mb='16px'
+          fontSize='32px'
+          color='gray.600'
+        >
+          Purchased
+        </Text>
+        <HStack justifyContent='flex-end' spacing='8px'>
+          <Button
+            colorScheme='teal'
+            disabled={page === 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Prev
+          </Button>
+          <Button
+            colorScheme='teal'
+            disabled={
+              status === 'success' &&
+              page === Math.ceil(data.data.totalCount / limit)
+            }
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Next
+          </Button>
+        </HStack>
+      </HStack>
+      {status === 'loading' ? null : status === 'error' ? (
+        <Text>{(error as Error).message}</Text>
+      ) : (
+        status === 'success' && (
+          <>
+            <Table>
+              <Thead>
+                <Tr>
+                  <Th textTransform='capitalize' bg='gray.300'>
+                    Id
+                  </Th>
+                  <Th textTransform='capitalize' bg='gray.300'>
+                    Created at
+                  </Th>
+                  <Th textTransform='capitalize' bg='gray.300'>
+                    Items
+                  </Th>
+                  <Th textTransform='capitalize' bg='gray.300'>
+                    Recevied
+                  </Th>
+                  <Th textTransform='capitalize' bg='gray.300'>
+                    Total Bill
+                  </Th>
+                  <Th textTransform='capitalize' bg='gray.300'>
+                    Status
+                  </Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {data.data.data.length === 0 && (
+                  <Tr>
+                    <Td>No bills existed</Td>
+                  </Tr>
+                )}
+                {data.data.data.map((bill) => (
+                  <BillRow key={bill._id} bill={bill} />
+                ))}
+              </Tbody>
+            </Table>
+          </>
+        )
+      )}
+    </Box>
+  );
+}
+
+function BillRow({ bill }) {
+  return (
+    <Tr>
+      <Td>
+        <Tooltip label={bill._id} aria-label='Tooltip'>
+          <span>
+            <NextLink href={`/bills/${bill._id}`}>
+              {bill._id.slice(0, 16) + '...'}
+            </NextLink>
+          </span>
+        </Tooltip>
+      </Td>
+      <Td>{bill.createdAt}</Td>
+      <Td>
+        <Popover>
+          <PopoverTrigger>
+            <Button size='xs'>Item details</Button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <PopoverArrow />
+            <PopoverCloseButton />
+            <PopoverHeader>Item list</PopoverHeader>
+            <PopoverBody>
+              <List spacing={3}>
+                {bill.items.map((item, index) => (
+                  <NextLink href={`/items/${item._id}`} passHref key={index}>
+                    <Link>
+                      <ListItem>
+                        <ListIcon as={BiCheckCircle} color='green.500' />
+                        {`(${item.name} - ${item.pricePerItem}) x ${item.quantity}`}
+                      </ListItem>
+                    </Link>
+                  </NextLink>
+                ))}
+              </List>
+            </PopoverBody>
+          </PopoverContent>
+        </Popover>
+      </Td>
+      <Td>{bill.moneyReceived}</Td>
+      <Td>{bill.actCharge}</Td>
+      <Td>
+        <Tag
+          variant='solid'
+          colorScheme={
+            bill.status === 'not-paid'
+              ? 'red'
+              : bill.status === 'partially-paid'
+              ? 'blue'
+              : bill.status === 'paid'
+              ? 'gray'
+              : 'gray'
+          }
+        >
+          {bill.status}
+        </Tag>
+      </Td>
+    </Tr>
   );
 }
 
