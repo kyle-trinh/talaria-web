@@ -17,8 +17,7 @@ import { truncate } from '../../utils';
 import { Tooltip } from '@chakra-ui/tooltip';
 import { Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/menu';
 import { RiMoreFill } from 'react-icons/ri';
-import Link from 'next/link';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   ModalOverlay,

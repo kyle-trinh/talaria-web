@@ -33,7 +33,7 @@ import {
   AlertTitle,
 } from '@chakra-ui/react';
 import { Formik, Form, Field } from 'formik';
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { RiMoreFill } from 'react-icons/ri';
 import Header from '../../components/Header';
 import { InputField } from '../../components/InputField';
@@ -47,7 +47,7 @@ import {
   SELECT_STYLE,
   ACCOUNTS,
 } from '../../constants';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useMutation, useQueryClient, QueryClient } from 'react-query';
 import { client } from '../../utils/api-client';
 import { truncate } from '../../utils/index';
 import { FreezeCol, Sort, LimitField } from '../../components/Options';
@@ -56,37 +56,10 @@ import { TableCeil } from '../../components/styles/Table';
 import ContentHeader from '../../components/ContentHeader';
 import Link from 'next/link';
 import { useItems, useDeleteItem } from '../../utils/items';
-export interface I_Item {
-  _id: string;
-  createdAt: string;
-  name: string;
-  link: string;
-  pricePerItem: string;
-  actPricePerItem: string;
-  quantity: string;
-  tax: string;
-  usShippingFee: string;
-  extraShippingCost: string;
-  estWgtPerItem: string;
-  actWgtPerItem: string;
-  actualCost: string;
-  trackingLink: string;
-  invoiceLink: string;
-  orderDate: string;
-  arrvlAtWarehouseDate: string;
-  customerRcvDate: string;
-  returnDate: string;
-  returnArrvlDate: string;
-  notes: string;
-  status: string;
-  website: string;
-  commissionRate: string;
-  itemType: string;
-  orderAccount: string;
-  warehouse: string;
-  transaction: string;
-  updatedAt: string;
-}
+import { useMe } from '../../hooks/useMe';
+import { GetServerSideProps, GetServerSidePropsContext } from 'next';
+import { dehydrate } from 'react-query/hydration';
+import { I_Item } from '../../types';
 
 const FilterInput = () => (
   <VStack spacing='8px'>
@@ -169,13 +142,11 @@ const FilterInput = () => (
   </VStack>
 );
 
-const layout = Array.from({ length: 8 });
-
 const LoadingLayout = () => (
   <>
-    {layout.map((_item, i) => (
+    {Array.from({ length: 8 }).map((_item, i) => (
       <Tr height='57px' key={i}>
-        {ITEM_DEFAULT.map((field, index) => {
+        {ITEM_DEFAULT.map((_field, index) => {
           return (
             <Td key={index}>
               <Skeleton height='16px' />
@@ -196,13 +167,7 @@ const Items = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
   const [filter, setFilter] = useState('');
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isOpen2,
-    onOpen: onOpen2,
-    onClose: onClose2,
-  } = useDisclosure();
-  const currentItem = useRef('');
+  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const { status, data, error } = useItems(
     null,
     page,
@@ -211,54 +176,22 @@ const Items = () => {
     filter,
     limit
   );
-  // const { status, data, error } = useQuery(
-  //   ["items", page, selected, sort, filter],
-  //   () =>
-  //     client(
-  //       `${BASE_URL}/items?page=${page}&limit=${limit}&fields=${selected}&sort=${
-  //         fieldOrder === "desc" ? "-" : ""
-  //       }${fieldName}${filter && `&${filter}`}`
-  //     )
-  // );
 
   const queryClient = useQueryClient();
 
-  const {
-    mutate: deleteItem,
-    error: deleteError,
-    isError: isDeleteError,
-    isLoading: isDeleteLoading,
-    reset: resetDelete,
-  } = useDeleteItem({
-    onSuccess: () => {
-      queryClient.invalidateQueries(['items', page, selected, sort, filter]);
-      onClose2();
-    },
-  });
+  const reloadPage = () => {
+    queryClient.invalidateQueries(['items', page, selected, sort, filter]);
+  };
 
-  const {
-    mutate: charge,
-    error: chargeError,
-    isError: isChargeError,
-    isLoading: isChargeLoading,
-    reset: resetCharge,
-  } = useMutation(
-    (data: { id: string; accountId: string }) =>
-      client(`${BASE_URL}/items/${data.id}/${data.accountId}`, {
-        method: 'PATCH',
-        credentials: 'include',
-      }),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['items', page, selected, sort, filter]);
-        onClose();
-      },
-    }
-  );
   return (
     <>
       <Header title='Items' />
-      <ContentHeader title='Items' />
+      <ContentHeader
+        title='Items'
+        user={user}
+        isLoading={isUserLoading}
+        status={userStatus}
+      />
       <Box
         gridArea='main'
         bg='white'
@@ -271,23 +204,7 @@ const Items = () => {
         overflow='auto'
       >
         <Box>
-          <Box display='flex' justifyContent='space-between'>
-            <Box w={500}>
-              <Formik
-                initialValues={{ search: '' }}
-                onSubmit={(values) => console.log(values)}
-              >
-                {() => (
-                  <Form>
-                    <InputField
-                      type='text'
-                      name='search'
-                      placeholder='Search for items...'
-                    />
-                  </Form>
-                )}
-              </Formik>
-            </Box>
+          <Box display='flex' justifyContent='flex-end'>
             <HStack spacing={2} align='stretch'>
               <NextLink href='/items/new' passHref>
                 <Button colorScheme='teal'>Add items +</Button>
@@ -328,11 +245,6 @@ const Items = () => {
               />
             </HStack>
           </Box>
-          {/* {status === "loading" ? (
-            <Spinner position="absolute" top="50%" left="50%" />
-          ) : status === "error" ? (
-            <span>{(error as Error).message}</span>
-          ) : ( */}
           <Box marginTop={8} w='100%'>
             <Box
               position='relative'
@@ -347,38 +259,13 @@ const Items = () => {
                     {selected.map((field, index) => {
                       return (
                         <TableCeil
-                          key={index}
+                          key={field}
                           index={index}
                           freezeNo={freezeNo}
                         >
                           {ITEM_FIELD_MAP[field as keyof I_Item]}
                         </TableCeil>
                       );
-                      // if (index < freezeNo) {
-                      //   return (
-                      //     <Th
-                      //       key={index}
-                      //       position="sticky"
-                      //       backgroundColor="gray.300"
-                      //       maxW={200}
-                      //       minW={200}
-                      //       left={200 * index}
-                      //       textTransform="capitalize"
-                      //     >
-                      //       {ITEM_FIELD_MAP[field as keyof I_Item]}
-                      //     </Th>
-                      //   );
-                      // } else {
-                      //   return (
-                      //     <Th
-                      //       key={index}
-                      //       backgroundColor="gray.200"
-                      //       textTransform="capitalize"
-                      //     >
-                      //       {ITEM_FIELD_MAP[field as keyof I_Item]}
-                      //     </Th>
-                      //   );
-                      // }
                     })}
                     <Th
                       right={0}
@@ -402,220 +289,19 @@ const Items = () => {
                   ) : (
                     <>
                       {data.data.data.map((single: I_Item) => (
-                        <Tr key={single._id}>
-                          {selected.map((field, index) => {
-                            const [output, fullStr] = truncate(
-                              single[field as keyof I_Item],
-                              16,
-                              ITEM_FIELD_MAP_2[field as keyof I_Item].type
-                            );
-                            if (index < freezeNo) {
-                              return (
-                                <Td
-                                  position='sticky'
-                                  maxW={200}
-                                  minW={200}
-                                  left={200 * index}
-                                  backgroundColor='gray.50'
-                                  key={index}
-                                >
-                                  <Tooltip
-                                    label={fullStr}
-                                    aria-label='A tooltip'
-                                  >
-                                    <span>{output}</span>
-                                  </Tooltip>
-                                </Td>
-                              );
-                            } else {
-                              return <Td key={index}>{output}</Td>;
-                            }
-                          })}
-                          <Td
-                            right={0}
-                            position='sticky'
-                            maxW='100px'
-                            minW='100px'
-                            textTransform='capitalize'
-                            bg='gray.50'
-                            _hover={{ zIndex: 1 }}
-                          >
-                            <Menu>
-                              <MenuButton
-                                as={IconButton}
-                                aria-label='More options'
-                                icon={<RiMoreFill />}
-                                variant='outline'
-                                size='xs'
-                                borderRadius='50%'
-                              />
-                              <MenuList>
-                                <Link
-                                  href={`/items/${single._id}/edit`}
-                                  passHref
-                                >
-                                  <MenuItem>Edit</MenuItem>
-                                </Link>
-                                <>
-                                  <MenuItem
-                                    onClick={() => {
-                                      // mutate(single._id);
-                                      currentItem.current = single._id;
-                                      onOpen2();
-                                    }}
-                                  >
-                                    Delete
-                                  </MenuItem>
-                                  <Modal
-                                    isOpen={isOpen2}
-                                    onClose={() => {
-                                      onClose2();
-                                      resetDelete();
-                                    }}
-                                    isCentered
-                                  >
-                                    <ModalOverlay />
-                                    <ModalContent>
-                                      <ModalHeader>Alert</ModalHeader>
-                                      <ModalCloseButton />
-                                      <ModalBody>
-                                        {isDeleteError && (
-                                          <Alert status='error'>
-                                            <AlertIcon />
-                                            <AlertTitle>
-                                              {(deleteError as Error).message}
-                                            </AlertTitle>
-                                          </Alert>
-                                        )}
-                                        <p>Are you sure you want to delete?</p>
-                                      </ModalBody>
-                                      <ModalFooter>
-                                        <Button
-                                          isLoading={isDeleteLoading}
-                                          colorScheme='red'
-                                          onClick={() => {
-                                            deleteItem(currentItem.current);
-                                          }}
-                                        >
-                                          Delete
-                                        </Button>
-                                        <Button onClick={onClose2}>
-                                          Cancel
-                                        </Button>
-                                      </ModalFooter>
-                                    </ModalContent>
-                                  </Modal>
-                                </>
-                                <>
-                                  <MenuItem
-                                    onClick={() => {
-                                      currentItem.current = single._id;
-                                      onOpen();
-                                    }}
-                                  >
-                                    Charge
-                                  </MenuItem>
-                                  <Modal
-                                    isOpen={isOpen}
-                                    onClose={() => {
-                                      onClose();
-                                      resetCharge();
-                                    }}
-                                    isCentered
-                                  >
-                                    <ModalOverlay />
-                                    <Formik
-                                      initialValues={{ accountId: '' }}
-                                      onSubmit={(values) => {
-                                        charge({
-                                          ...values,
-                                          id: currentItem.current,
-                                        });
-                                        console.log(currentItem.current);
-                                        // onClose();
-                                      }}
-                                    >
-                                      {(props) => (
-                                        <Form>
-                                          <ModalContent>
-                                            <ModalHeader>
-                                              Choose accounts
-                                            </ModalHeader>
-                                            <ModalCloseButton />
-                                            <ModalBody>
-                                              {isChargeError && (
-                                                <Alert status='error'>
-                                                  <AlertIcon />
-                                                  <AlertTitle mr={2}>
-                                                    {
-                                                      (chargeError as Error)
-                                                        .message
-                                                    }
-                                                  </AlertTitle>
-                                                </Alert>
-                                              )}
-                                              <FormControl>
-                                                <FormLabel
-                                                  htmlFor={`accountId-${single._id}`}
-                                                >
-                                                  Account
-                                                </FormLabel>
-                                                <Select
-                                                  placeholder='Select option'
-                                                  id={`accountId-${single._id}`}
-                                                  name='accountId'
-                                                  value={props.values.accountId}
-                                                  onChange={(e) =>
-                                                    props.setFieldValue(
-                                                      'accountId',
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  required
-                                                >
-                                                  {ACCOUNTS.filter(
-                                                    (account) =>
-                                                      account.website ===
-                                                      single.website
-                                                  ).map((account) => (
-                                                    <option
-                                                      value={account._id}
-                                                      key={account._id}
-                                                    >
-                                                      {account.name}
-                                                    </option>
-                                                  ))}
-                                                </Select>
-                                              </FormControl>
-                                            </ModalBody>
-                                            <ModalFooter>
-                                              <Button
-                                                colorScheme='blue'
-                                                type='submit'
-                                                isLoading={isChargeLoading}
-                                                onClick={() =>
-                                                  console.log('qwe')
-                                                }
-                                              >
-                                                Charge
-                                              </Button>
-                                            </ModalFooter>
-                                          </ModalContent>
-                                        </Form>
-                                      )}
-                                    </Formik>
-                                  </Modal>
-                                </>
-                              </MenuList>
-                            </Menu>
-                          </Td>
-                        </Tr>
+                        <ItemRow
+                          single={single}
+                          reloadPage={reloadPage}
+                          selected={selected}
+                          freezeNo={freezeNo}
+                          key={single._id}
+                        />
                       ))}
                       {Array.from({ length: 8 - data.data.data.length }).map(
-                        (item, i) => (
+                        (_item, i) => (
                           <Tr key={i} height='57px'>
-                            {selected.map((field, index) => (
-                              <Td></Td>
+                            {selected.map((_field, index) => (
+                              <Td key={index}></Td>
                             ))}
                             <Td
                               right={0}
@@ -640,12 +326,8 @@ const Items = () => {
               >
                 Prev
               </Button>
-              <p>
-                {page} of{' '}
-                {status === 'loading'
-                  ? 'X'
-                  : Math.ceil(data.data.totalCount / limit)}
-              </p>
+
+              <p>Page {page}</p>
               <Button
                 colorScheme='teal'
                 disabled={
@@ -659,11 +341,278 @@ const Items = () => {
               </Button>
             </HStack>
           </Box>
-          {/* )} */}
         </Box>
       </Box>
     </>
   );
+};
+
+interface ItemRowProps {
+  single: I_Item;
+  reloadPage: () => void;
+  selected: string[];
+  freezeNo: number;
+}
+
+function ItemRow({ single, reloadPage, selected, freezeNo }: ItemRowProps) {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isOpen2,
+    onOpen: onOpen2,
+    onClose: onClose2,
+  } = useDisclosure();
+  const {
+    mutate: deleteItem,
+    error: deleteError,
+    isError: isDeleteError,
+    isLoading: isDeleteLoading,
+    reset: resetDelete,
+  } = useDeleteItem({
+    onSuccess: () => {
+      reloadPage();
+      onClose2();
+    },
+  });
+
+  const {
+    mutate: charge,
+    error: chargeError,
+    isError: isChargeError,
+    isLoading: isChargeLoading,
+    reset: resetCharge,
+  } = useMutation(
+    (data: { id: string; accountId: string }) =>
+      client(`${BASE_URL}/items/${data.id}/${data.accountId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+      }),
+    {
+      onSuccess: () => {
+        reloadPage();
+        onClose();
+      },
+    }
+  );
+  return (
+    <Tr key={single._id}>
+      {selected.map((field: string, index: number) => {
+        const [output, fullStr] = truncate(
+          single[field as keyof I_Item],
+          16,
+          ITEM_FIELD_MAP_2[field as keyof I_Item].type
+        );
+        if (index < freezeNo) {
+          return (
+            <Td
+              position='sticky'
+              maxW={200}
+              minW={200}
+              left={200 * index}
+              backgroundColor='gray.50'
+              key={field}
+            >
+              <Tooltip label={fullStr} aria-label='A tooltip'>
+                <span>{output}</span>
+              </Tooltip>
+            </Td>
+          );
+        } else {
+          return (
+            <Td key={field}>
+              <Tooltip label={fullStr} aria-label='A tooltip'>
+                <span>{output}</span>
+              </Tooltip>
+            </Td>
+          );
+        }
+      })}
+      <Td
+        right={0}
+        position='sticky'
+        maxW='100px'
+        minW='100px'
+        textTransform='capitalize'
+        bg='gray.50'
+        _hover={{ zIndex: 1 }}
+      >
+        <Menu>
+          <MenuButton
+            as={IconButton}
+            aria-label='More options'
+            icon={<RiMoreFill />}
+            variant='outline'
+            size='xs'
+            borderRadius='50%'
+          />
+          <MenuList>
+            <Link href={`/items/${single._id}/edit`} passHref>
+              <MenuItem>Edit</MenuItem>
+            </Link>
+            <>
+              <MenuItem
+                onClick={() => {
+                  onOpen2();
+                }}
+              >
+                Delete
+              </MenuItem>
+              <Modal
+                isOpen={isOpen2}
+                onClose={() => {
+                  onClose2();
+                  resetDelete();
+                }}
+                isCentered
+              >
+                <ModalOverlay />
+                <ModalContent>
+                  <ModalHeader>Alert</ModalHeader>
+                  <ModalCloseButton />
+                  <ModalBody>
+                    {isDeleteError && (
+                      <Alert status='error'>
+                        <AlertIcon />
+                        <AlertTitle>
+                          {(deleteError as Error).message}
+                        </AlertTitle>
+                      </Alert>
+                    )}
+                    <p>Are you sure you want to delete?</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <HStack spacing='8px'>
+                      <Button
+                        isLoading={isDeleteLoading}
+                        colorScheme='red'
+                        onClick={() => {
+                          console.log(single._id);
+                          deleteItem(single._id);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                      <Button onClick={onClose2}>Cancel</Button>
+                    </HStack>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
+            </>
+            <>
+              <MenuItem
+                onClick={() => {
+                  onOpen();
+                }}
+                isDisabled={!!single.actualCost}
+              >
+                Charge
+              </MenuItem>
+              <Modal
+                isOpen={isOpen}
+                onClose={() => {
+                  onClose();
+                  resetCharge();
+                }}
+                isCentered
+              >
+                <ModalOverlay />
+                <Formik
+                  initialValues={{ accountId: '' }}
+                  onSubmit={(values) => {
+                    charge({
+                      ...values,
+                      id: single._id,
+                    });
+                    // onClose();
+                  }}
+                >
+                  {(props) => (
+                    <Form>
+                      <ModalContent>
+                        <ModalHeader>Choose accounts</ModalHeader>
+                        <ModalCloseButton />
+                        <ModalBody>
+                          {isChargeError && (
+                            <Alert status='error'>
+                              <AlertIcon />
+                              <AlertTitle mr={2}>
+                                {(chargeError as Error).message}
+                              </AlertTitle>
+                            </Alert>
+                          )}
+                          <FormControl>
+                            <FormLabel htmlFor={`accountId-${single._id}`}>
+                              Account
+                            </FormLabel>
+                            <Select
+                              placeholder='Select option'
+                              id={`accountId-${single._id}`}
+                              name='accountId'
+                              value={props.values.accountId}
+                              onChange={(e) =>
+                                props.setFieldValue('accountId', e.target.value)
+                              }
+                              required
+                            >
+                              {ACCOUNTS.filter(
+                                (account) => account.website === single.website
+                              ).map((account) => (
+                                <option value={account._id} key={account._id}>
+                                  {account.name}
+                                </option>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </ModalBody>
+                        <ModalFooter>
+                          <Button
+                            colorScheme='blue'
+                            type='submit'
+                            isLoading={isChargeLoading}
+                            onClick={() => console.log('qwe')}
+                          >
+                            Charge
+                          </Button>
+                        </ModalFooter>
+                      </ModalContent>
+                    </Form>
+                  )}
+                </Formik>
+              </Modal>
+            </>
+          </MenuList>
+        </Menu>
+      </Td>
+    </Tr>
+  );
+}
+
+export const getServerSideProps: GetServerSideProps = async function ({
+  req,
+  res,
+}: GetServerSidePropsContext) {
+  const queryClient = new QueryClient();
+  try {
+    await queryClient.fetchQuery('userProfile', () =>
+      client('http://localhost:4444/api/v1/users/me', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
+        },
+      })
+    );
+
+    return {
+      props: { dehydratedState: dehydrate(queryClient) },
+    };
+  } catch (err) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
 };
 
 export default Items;

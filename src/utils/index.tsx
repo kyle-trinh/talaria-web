@@ -1,30 +1,41 @@
-import ExternalLink from "../components/ExternalLink";
-import Link from "next/link";
-import { Tag } from "@chakra-ui/react";
+import ExternalLink from '../components/ExternalLink';
+import Link from 'next/link';
+import { Tag } from '@chakra-ui/react';
 
 function truncate(str: string, num: number, type: string) {
   if (str) {
-    if (type === "string") {
+    if (type === 'string') {
       return [str.length >= num ? `${str.slice(0, num)}...` : str, str];
-    } else if (type === "externalLink") {
+    } else if (type === 'externalLink') {
       return [
         <span>
           <ExternalLink href={str}>{`${str.slice(0, num)}...`}</ExternalLink>
         </span>,
         str,
       ];
-    } else if (type === "internalLink") {
+    } else if (type === 'internalLink') {
       return [
-        <Link href={`/items/${str}`}>{str.slice(0, 16) + "..."}</Link>,
+        <Link href={`/items/${str}`}>{str.slice(0, 16) + '...'}</Link>,
         str,
       ];
-    } else if (type === "badge") {
-      return [<Tag size="md">{str}</Tag>, str];
+    } else if (type === 'badge') {
+      return [<Tag size='md'>{str}</Tag>, str];
     } else {
       return [str, str];
     }
   }
-  return ["-", "-"];
+  return ['-', '-'];
+}
+
+export function removeBlankField(obj: object) {
+  const copy = { ...obj };
+  for (const [key, value] of Object.entries(copy)) {
+    if (!value) {
+      delete copy[key];
+    }
+  }
+
+  return copy;
 }
 
 export { truncate };

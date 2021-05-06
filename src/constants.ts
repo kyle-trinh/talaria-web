@@ -106,15 +106,15 @@ const ITEM_FIELD_MAP_2 = {
     full: 'item type',
   },
   orderAccount: {
-    type: 'string',
+    type: 'internalLink',
     full: 'order account',
   },
   warehouse: {
-    type: 'string',
+    type: 'internalLink',
     full: 'warehouse',
   },
   transaction: {
-    type: 'string',
+    type: 'internalLink',
     full: 'transaction',
   },
   updatedAt: {

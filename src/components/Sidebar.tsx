@@ -88,11 +88,11 @@ export const Sidebar: React.FC<SidebarProps> = ({}) => {
       flexDirection='column'
       padding='3rem 0'
     >
-      <Box borderRadius={8} mb='50px' cursor='pointer'>
-        <NextLink href='/'>
+      <NextLink href='/' passHref>
+        <Box borderRadius={8} mb='50px' cursor='pointer'>
           <Image src='/images/logo.png' width={80} height={80} />
-        </NextLink>
-      </Box>
+        </Box>
+      </NextLink>
       <VStack spacing={0} w='100%'>
         {menuItems.map((item) => {
           const isSelected = router.pathname.split('/')[1] === item.pathname;

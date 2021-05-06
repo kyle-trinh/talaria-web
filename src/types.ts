@@ -1,0 +1,31 @@
+export interface I_Item {
+  _id: string;
+  createdAt: string;
+  name: string;
+  link: string;
+  pricePerItem: string;
+  actPricePerItem: string;
+  quantity: string;
+  tax: string;
+  usShippingFee: string;
+  extraShippingCost: string;
+  estWgtPerItem: string;
+  actWgtPerItem: string;
+  actualCost: string;
+  trackingLink: string;
+  invoiceLink: string;
+  orderDate: string;
+  arrvlAtWarehouseDate: string;
+  customerRcvDate: string;
+  returnDate: string;
+  returnArrvlDate: string;
+  notes: string;
+  status: string;
+  website: string;
+  commissionRate: string;
+  itemType: string;
+  orderAccount: string;
+  warehouse: string;
+  transaction: string;
+  updatedAt: string;
+}
