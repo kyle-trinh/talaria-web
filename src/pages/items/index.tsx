@@ -320,7 +320,7 @@ const Items = () => {
 
             <HStack alignItems='center' justifyContent='flex-end' mt='16px'>
               <Button
-                disabled={page === 1}
+                disabled={page <= 1}
                 colorScheme='teal'
                 onClick={() => setPage((p) => p - 1)}
               >
@@ -333,7 +333,7 @@ const Items = () => {
                 disabled={
                   status === 'loading'
                     ? false
-                    : page === Math.ceil(data.data.totalCount / limit)
+                    : page >= Math.ceil(data.data.totalCount / limit)
                 }
                 onClick={() => setPage((p) => p + 1)}
               >

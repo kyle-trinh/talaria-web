@@ -41,6 +41,7 @@ import {
   FormControl,
   Input,
   FormLabel,
+  Select,
 } from '@chakra-ui/react';
 import React, { useState, useRef } from 'react';
 import { RiMoreFill } from 'react-icons/ri';
@@ -64,10 +65,12 @@ import { Sort } from '../../components/Options';
 import ContentHeader from '../../components/ContentHeader';
 import NextLink from 'next/link';
 import ExternalLink from '../../components/ExternalLink';
-import { Field, Form, Formik } from 'formik';
+import { Field, FieldArray, Form, Formik } from 'formik';
 import { InputField } from '../../components/InputField';
 import BillRow from '../../components/BillRow';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
+import { useMe } from '../../hooks/useMe';
+import Filter from '../../components/Options/Filter';
 const layout = Array.from({ length: 8 });
 
 const LoadingLayout = () => (
@@ -95,32 +98,19 @@ const Cryptos = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
   const [filter, setFilter] = useState('');
-  const currentItem = useRef('');
-  const { data: user, isLoading: userIsLoading } = useQuery('userProfile', () =>
-    client('http://localhost:4444/api/v1/users/me', {
-      method: 'GET',
-      credentials: 'include',
-    })
-  );
+  const { user, isLoading: userIsLoading, status: userStatus } = useMe();
   const [fieldName, fieldOrder] = sort.split(':');
   const { status, data, error } = useQuery(
-    ['bills', page, selected, sort, limit],
+    ['bills', page, selected, sort, limit, filter],
     () =>
       client(
         `${BASE_URL}/bills?page=${page}&limit=${limit}&sort=${
           fieldOrder === 'desc' ? '-' : ''
-        }${fieldName} ${filter && `&${filter}`}`
+        }${fieldName}${filter && `&${filter}`}`
       )
   );
-  // const { status, data, error } = useQuery(
-  //   ["items", page, selected, sort, filter],
-  //   () =>
-  //     client(
-  //       `${BASE_URL}/items?page=${page}&limit=${limit}&fields=${selected}&sort=${
-  //         fieldOrder === "desc" ? "-" : ""
-  //       }${fieldName}${filter && `&${filter}`}`
-  //     )
-  // );
+
+  // TODO: add filter by users
 
   const queryClient = useQueryClient();
 
@@ -132,8 +122,9 @@ const Cryptos = () => {
       <Header title='Bills' />
       <ContentHeader
         title='Bills'
-        user={user.data.data}
+        user={user}
         isLoading={userIsLoading}
+        status={userStatus}
       />
       <Box
         gridArea='main'
@@ -148,9 +139,28 @@ const Cryptos = () => {
       >
         <Box>
           <HStack spacing={2} justifyContent='flex-end'>
-            <NextLink href='/bills/new' passHref>
+            <NextLink href='/bills/new?customer=' passHref>
               <Button colorScheme='teal'>Add Bills +</Button>
             </NextLink>
+            <Filter
+              setFilter={setFilter}
+              defaultValues={{ status: '' }}
+              defaultHeight='200px'
+            >
+              <Field name='status'>
+                {({ field }) => (
+                  <FormControl>
+                    <FormLabel htmlFor='status'>Status</FormLabel>
+                    <Select id='status' {...field}>
+                      <option value=''>Select one</option>
+                      <option value='not-paid'>Not paid yet</option>
+                      <option value='partially-paid'>Partially paid</option>
+                      <option value='fully-paid'>Fully paid</option>
+                    </Select>
+                  </FormControl>
+                )}
+              </Field>
+            </Filter>
             <Sort
               sortable={['_id', 'createdAt']}
               setSort={setSort}
@@ -207,6 +217,11 @@ const Cryptos = () => {
                     <span>{(error as Error).message}</span>
                   ) : (
                     <>
+                      {data.data.data.length === 0 && (
+                        <Tr>
+                          <Td>No bill available</Td>
+                        </Tr>
+                      )}
                       {data.data.data.map((single) => (
                         <BillRow
                           reloadPage={reloadPage}
@@ -237,24 +252,19 @@ const Cryptos = () => {
 
             <HStack alignItems='center' justifyContent='flex-end' mt='16px'>
               <Button
-                disabled={page === 1}
+                disabled={page <= 1}
                 colorScheme='teal'
                 onClick={() => setPage((p) => p - 1)}
               >
                 Prev
               </Button>
-              <p>
-                {page} of{' '}
-                {status === 'loading'
-                  ? 'X'
-                  : Math.ceil(data.data.totalCount / limit)}
-              </p>
+              <p>Page {page}</p>
               <Button
                 colorScheme='teal'
                 disabled={
                   status === 'loading'
                     ? false
-                    : page === Math.ceil(data.data.totalCount / limit)
+                    : page >= Math.ceil(data.data.totalCount / limit)
                 }
                 onClick={() => setPage((p) => p + 1)}
               >

@@ -32,20 +32,30 @@ import {
   ModalCloseButton,
   ModalContent,
   ModalFooter,
+  IconButton,
   ModalHeader,
   ModalOverlay,
   Input,
 } from '@chakra-ui/react';
 import { InputField } from '../../components/InputField';
 import { client } from '../../utils/api-client';
-import { useMutation, useQuery, useQueryClient } from 'react-query';
-import { BASE_URL } from '../../constants';
-import { Router, useRouter } from 'next/router';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  QueryClient,
+} from 'react-query';
+import { BASE_URL, I_Item } from '../../constants';
+import { useRouter } from 'next/router';
 import { BiCheckCircle } from 'react-icons/bi';
 import NextLink from 'next/link';
-// import dynamic from 'next/dynamic';
-// const { Formik, Form, Field } = dynamic(() => import('formik'), { ssr: false });
-import { Formik, Form, Field } from 'formik';
+import { Formik, Form, Field, FieldInputProps } from 'formik';
+import { GetServerSideProps, GetServerSidePropsContext } from 'next';
+import { dehydrate } from 'react-query/hydration';
+import { useMe } from '../../hooks/useMe';
+import { removeBlankField } from '../../utils';
+import { I_Bill } from '../../types';
+import { AiOutlineClose } from 'react-icons/ai';
 
 interface Item_Interface {
   _id: string;
@@ -54,31 +64,49 @@ interface Item_Interface {
   quantity: number;
 }
 
+interface I_Field {
+  field: FieldInputProps<any>;
+}
+
+interface I_User_Br {
+  _id: string;
+  firstName: string;
+  lastName?: string;
+  role: string;
+}
+
+interface I_Item_Form {
+  name: string;
+  link: string;
+  pricePerItem: number | string;
+  quantity: number;
+  estWgtPerItem: number | string;
+  website: string;
+  itemType: string;
+  warehouse: string;
+  commissionRate?: number | string;
+  extraShippingCost?: number | string;
+  notes?: string;
+}
+
 export default function NewBill() {
   const router = useRouter();
-  console.log(router.query.customer);
-  const queryClient = useQueryClient();
+  const { user, isLoading: isUserLoading, status: currentUserStatus } = useMe();
   const [items, setItems] = React.useState<Item_Interface[]>([]);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  React.useEffect(() => {
+    setItems(
+      JSON.parse(localStorage?.getItem('items-in-current-bill') || '[]')
+    );
+  }, []);
+
   const { mutate, isLoading, isError, error, isSuccess, reset } = useMutation(
-    (data: {
-      commissionRate: number | null;
-      estWgtPerItem: number;
-      extraShippingCost: number;
-      itemType: string;
-      link: string;
-      name: string;
-      notes: string;
-      pricePerItem: number;
-      quantity: number;
-      warehouse: string;
-      website: string;
-    }) =>
+    (data: I_Item_Form) =>
       client(`${BASE_URL}/items`, {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify(removeBlankField(data)),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -92,7 +120,11 @@ export default function NewBill() {
           pricePerItem: data.data.data.pricePerItem,
           quantity: data.data.data.quantity,
         };
-        // localStorage.setItem('items-in-current-bill', JSON.stringify(newItem));
+        //TODO: load items from localStorage
+        localStorage.setItem(
+          'items-in-current-bill',
+          JSON.stringify([...items, newItem])
+        );
         setItems([...items, newItem]);
         onClose();
       },
@@ -105,52 +137,44 @@ export default function NewBill() {
     error: billError,
     isSuccess: isBillSuccess,
   } = useMutation(
-    (data: {
-      notes: string;
-      customer: string;
-      usdVndRate: number;
-      shippingRateToVn: {
-        value: number;
-        currency: string;
-      };
-      customTax: number;
-      affiliate: string;
-      items: string[];
-    }) =>
+    (data: I_Bill) =>
       client(`${BASE_URL}/bills`, {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify(removeBlankField(data)),
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
       }),
     {
-      onSuccess: (data) => {
+      onSuccess: () => {
         router.push('/bills');
+        localStorage.removeItem('items-in-current-bill');
       },
     }
   );
 
   const { data: users, status: userStatus, error: userError } = useQuery(
     ['users'],
-    () =>
-      client(
-        `${BASE_URL}/users?role=customer&role=affiliate&fields=_id,firstName,lastName,role`
-      )
+    () => client(`${BASE_URL}/users?fields=_id,firstName,lastName,role`)
   );
 
   return (
     <>
-      <Header title='Create a new item' />
-      <ContentHeader title='Create a new item' />
+      <Header title='Create a new bill' />
+      <ContentHeader
+        title='Create a new bill'
+        user={user}
+        isLoading={isUserLoading}
+        status={currentUserStatus}
+      />
       <ContentBody>
         <Box maxW='1080px' width='100%'>
           {router.query.customer !== undefined && (
             <Formik
               initialValues={{
                 notes: '',
-                customer: router.query.customer,
+                customer: router.query.customer.toString(),
                 usdVndRate: 24000,
                 shippingRateToVn: {
                   value: 12,
@@ -167,7 +191,7 @@ export default function NewBill() {
                 });
               }}
             >
-              {(props) => (
+              {() => (
                 <Form>
                   {isBillError && (
                     <Alert status='error' mb='16px'>
@@ -175,6 +199,12 @@ export default function NewBill() {
                       <AlertTitle mr={2}>
                         {(billError as Error).message}
                       </AlertTitle>
+                    </Alert>
+                  )}
+                  {userStatus === 'error' && (
+                    <Alert status='error'>
+                      <AlertIcon />
+                      <AlertTitle>{(userError as Error).message}</AlertTitle>
                     </Alert>
                   )}
                   {isBillSuccess && (
@@ -205,20 +235,44 @@ export default function NewBill() {
                             <PopoverBody>
                               <List spacing={3}>
                                 {items.map((item) => (
-                                  <NextLink
-                                    href={`/items/${item._id}`}
-                                    passHref
+                                  <HStack
+                                    justifyContent='space-between'
+                                    key={item._id}
                                   >
-                                    <Link>
-                                      <ListItem>
-                                        <ListIcon
-                                          as={BiCheckCircle}
-                                          color='green.500'
-                                        />
-                                        {`(${item.name} - ${item.pricePerItem}) x ${item.quantity}`}
-                                      </ListItem>
-                                    </Link>
-                                  </NextLink>
+                                    <NextLink
+                                      href={`/items/${item._id}`}
+                                      passHref
+                                    >
+                                      <Link>
+                                        <ListItem>
+                                          <ListIcon
+                                            as={BiCheckCircle}
+                                            color='green.500'
+                                          />
+                                          {`(${item.name} - ${item.pricePerItem}) x ${item.quantity}`}
+                                        </ListItem>
+                                      </Link>
+                                    </NextLink>
+                                    <IconButton
+                                      icon={<AiOutlineClose />}
+                                      colorScheme='red'
+                                      aria-label='delete item'
+                                      size='xs'
+                                      variant='outline'
+                                      borderRadius='50%'
+                                      onClick={() => {
+                                        setItems((items) =>
+                                          items.filter(
+                                            (single) => single._id !== item._id
+                                          )
+                                        );
+                                        localStorage.setItem(
+                                          'items-in-current-bill',
+                                          JSON.stringify(items)
+                                        );
+                                      }}
+                                    />
+                                  </HStack>
                                 ))}
                               </List>
                             </PopoverBody>
@@ -229,7 +283,7 @@ export default function NewBill() {
                       )}
                     </VStack>
                     <Field name='customer'>
-                      {({ field, form }) => (
+                      {({ field }: I_Field) => (
                         <FormControl>
                           <FormLabel htmlFor='customer'>Customer</FormLabel>
                           <Select id='customer' required {...field}>
@@ -238,18 +292,12 @@ export default function NewBill() {
                             ) : (
                               <>
                                 <option value=''>Select one</option>
-                                {users.data.data
-                                  .filter(
-                                    (user) =>
-                                      user.role === 'customer' ||
-                                      user.role === 'affiliate'
-                                  )
-                                  .map((user) => (
-                                    <option
-                                      value={user._id}
-                                      key={user._id}
-                                    >{`${user.firstName} ${user.lastName} - ${user.role}`}</option>
-                                  ))}
+                                {users.data.data.map((user: I_User_Br) => (
+                                  <option
+                                    value={user._id}
+                                    key={user._id}
+                                  >{`${user.firstName} ${user.lastName} - ${user.role}`}</option>
+                                ))}
                               </>
                             )}
                           </Select>
@@ -261,10 +309,11 @@ export default function NewBill() {
                       name='usdVndRate'
                       placeholder='USD / VND rate'
                       label='USD / VND rate'
+                      required
                     />
                     <HStack alignItems='flex-end'>
                       <Field name='shippingRateToVn.value'>
-                        {({ field, form }) => (
+                        {({ field }: I_Field) => (
                           <FormControl>
                             <FormLabel htmlFor='shippingRateToVn'>
                               Shipping rate to VN
@@ -279,7 +328,7 @@ export default function NewBill() {
                         )}
                       </Field>
                       <Field name='shippingRateToVn.currency'>
-                        {({ field, form }) => (
+                        {({ field }: I_Field) => (
                           <Select
                             {...field}
                             id='shippingRateToVnCurrency'
@@ -294,7 +343,7 @@ export default function NewBill() {
                       </Field>
                     </HStack>
                     <Field name='affiliate'>
-                      {({ field, form }) => (
+                      {({ field }: I_Field) => (
                         <FormControl>
                           <FormLabel htmlFor='affiliate'>Affiliate</FormLabel>
                           <Select id='affiliate' required {...field}>
@@ -303,14 +352,12 @@ export default function NewBill() {
                             ) : (
                               <>
                                 <option value=''>Select one</option>
-                                {users.data.data
-                                  .filter((user) => user.role === 'affiliate')
-                                  .map((user) => (
-                                    <option
-                                      value={user._id}
-                                      key={user._id}
-                                    >{`${user.firstName} ${user.lastName}`}</option>
-                                  ))}
+                                {users.data.data.map((user: I_User_Br) => (
+                                  <option
+                                    value={user._id}
+                                    key={user._id}
+                                  >{`${user.firstName} ${user.lastName} - ${user.role}`}</option>
+                                ))}
                               </>
                             )}
                           </Select>
@@ -362,17 +409,17 @@ export default function NewBill() {
                                 initialValues={{
                                   name: '',
                                   link: '',
-                                  pricePerItem: 0,
+                                  pricePerItem: '',
                                   quantity: 1,
-                                  estWgtPerItem: 0,
+                                  estWgtPerItem: '',
                                   website: 'amazon',
-                                  itemType: 'toys',
+                                  itemType: '',
                                   warehouse: '60528fdd27ae2f0b7f0d843c',
-                                  commissionRate: 0,
-                                  extraShippingCost: 0,
+                                  commissionRate: '',
+                                  extraShippingCost: '',
                                   notes: '',
                                 }}
-                                onSubmit={(values) => {
+                                onSubmit={(values: I_Item_Form) => {
                                   mutate(values);
                                 }}
                               >
@@ -405,6 +452,7 @@ export default function NewBill() {
                                         name='name'
                                         placeholder='Item name'
                                         label='Item name'
+                                        required
                                       />
                                       <InputField
                                         type='text'
@@ -429,6 +477,13 @@ export default function NewBill() {
                                       />
                                       <InputField
                                         type='number'
+                                        name='estWgtPerItem'
+                                        placeholder='Estimated weight'
+                                        label='Estimated weight'
+                                        required
+                                      />
+                                      <InputField
+                                        type='number'
                                         name='extraShippingCost'
                                         placeholder='Extra shipping'
                                         label='Extra shipping cost'
@@ -439,96 +494,96 @@ export default function NewBill() {
                                         placeholder='Commission rate'
                                         label='Commission rate for affiliate'
                                       />
-                                      <InputField
-                                        type='number'
-                                        name='estWgtPerItem'
-                                        placeholder='Estimated weight'
-                                        label='Estimated weight'
-                                        required
-                                      />
-                                      <FormControl>
-                                        <FormLabel htmlFor='website'>
-                                          Order Website
-                                        </FormLabel>
-                                        <Select
-                                          placeholder='Select option'
-                                          id='website'
-                                          name='website'
-                                          value={props.values.website}
-                                          onChange={(e) =>
-                                            props.setFieldValue(
-                                              'website',
-                                              e.target.value
-                                            )
-                                          }
-                                          required
-                                        >
-                                          <option value='amazon'>Amazon</option>
-                                          <option value='sephora'>
-                                            Sephora
-                                          </option>
-                                          <option value='bestbuy'>
-                                            Bestbuy
-                                          </option>
-                                          <option value='costco'>Costco</option>
-                                          <option value='target'>Target</option>
-                                          <option value='walmart'>
-                                            Walmart
-                                          </option>
-                                          <option value='others'>Others</option>
-                                        </Select>
-                                      </FormControl>
-                                      <FormControl>
-                                        <FormLabel htmlFor='itemType'>
-                                          Item Type
-                                        </FormLabel>
-                                        <Select
-                                          placeholder='Select option'
-                                          id='itemType'
-                                          name='itemType'
-                                          value={props.values.itemType}
-                                          onChange={(e) =>
-                                            props.setFieldValue(
-                                              'itemType',
-                                              e.target.value
-                                            )
-                                          }
-                                        >
-                                          <option value='cosmetics'>
-                                            cosmetics
-                                          </option>
-                                          <option value='toys'>toys</option>
-                                          <option value='electronics'>
-                                            electronics
-                                          </option>
-                                          <option value='accessories'>
-                                            accessories
-                                          </option>
-                                          <option value='others'>others</option>
-                                        </Select>
-                                      </FormControl>
-                                      <FormControl>
-                                        <FormLabel htmlFor='warehouse'>
-                                          Warehouse
-                                        </FormLabel>
-                                        <Select
-                                          placeholder='Select option'
-                                          id='warehouse'
-                                          name='warehouse'
-                                          value={props.values.warehouse}
-                                          onChange={(e) =>
-                                            props.setFieldValue(
-                                              'warehouse',
-                                              e.target.value
-                                            )
-                                          }
-                                          required
-                                        >
-                                          <option value='60528fdd27ae2f0b7f0d843c'>
-                                            UNIHAN
-                                          </option>
-                                        </Select>
-                                      </FormControl>
+                                      <Field name='website'>
+                                        {({ field }: I_Field) => (
+                                          <FormControl>
+                                            <FormLabel htmlFor='website'>
+                                              Order Website
+                                            </FormLabel>
+                                            <Select
+                                              {...field}
+                                              id='website'
+                                              required
+                                            >
+                                              <option value=''>
+                                                Select one
+                                              </option>
+                                              <option value='amazon'>
+                                                Amazon
+                                              </option>
+                                              <option value='sephora'>
+                                                Sephora
+                                              </option>
+                                              <option value='bestbuy'>
+                                                Bestbuy
+                                              </option>
+                                              <option value='costco'>
+                                                Costco
+                                              </option>
+                                              <option value='target'>
+                                                Target
+                                              </option>
+                                              <option value='walmart'>
+                                                Walmart
+                                              </option>
+                                              <option value='others'>
+                                                Others
+                                              </option>
+                                            </Select>
+                                          </FormControl>
+                                        )}
+                                      </Field>
+                                      <Field name='itemType'>
+                                        {({ field }: I_Field) => (
+                                          <FormControl>
+                                            <FormLabel htmlFor='itemType'>
+                                              Item Type
+                                            </FormLabel>
+                                            <Select
+                                              {...field}
+                                              placeholder='Select option'
+                                              id='itemType'
+                                              required
+                                            >
+                                              <option value='cosmetics'>
+                                                cosmetics
+                                              </option>
+                                              <option value='toys'>toys</option>
+                                              <option value='electronics'>
+                                                electronics
+                                              </option>
+                                              <option value='accessories'>
+                                                accessories
+                                              </option>
+                                              <option value='others'>
+                                                others
+                                              </option>
+                                            </Select>
+                                          </FormControl>
+                                        )}
+                                      </Field>
+                                      <Field name='warehouse'>
+                                        {({ field }: I_Field) => (
+                                          <FormControl>
+                                            <FormLabel htmlFor='warehouse'>
+                                              Warehouse
+                                            </FormLabel>
+                                            <Select
+                                              {...field}
+                                              placeholder='Select option'
+                                              id='warehouse'
+                                              required
+                                            >
+                                              <option value=''>
+                                                Select option
+                                              </option>
+                                              <option value='60528fdd27ae2f0b7f0d843c'>
+                                                UNIHAN
+                                              </option>
+                                            </Select>
+                                          </FormControl>
+                                        )}
+                                      </Field>
                                       <InputField
                                         type='text'
                                         name='notes'
@@ -570,3 +625,32 @@ export default function NewBill() {
     </>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async function ({
+  req,
+  res,
+}: GetServerSidePropsContext) {
+  const queryClient = new QueryClient();
+  try {
+    await queryClient.fetchQuery('userProfile', () =>
+      client('http://localhost:4444/api/v1/users/me', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
+        },
+      })
+    );
+
+    return {
+      props: { dehydratedState: dehydrate(queryClient) },
+    };
+  } catch (err) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
+};

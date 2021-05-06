@@ -29,3 +29,34 @@ export interface I_Item {
   transaction: string;
   updatedAt: string;
 }
+
+export interface MoneyType {
+  value: number;
+  currency: string;
+}
+
+export interface Balance {
+  amount: number;
+  rating: number;
+}
+
+export interface I_Bill {
+  createdAt?: number;
+  updatedAt?: number;
+  usdVndRate: number;
+  status?: string;
+  shippingRateToVn: MoneyType;
+  customTax?: number;
+  moneyReceived?: number;
+  totalBillUsd?: number;
+  actBillCost?: number;
+  actCharge?: number;
+  commission?: number;
+  paymentReceipt?: string;
+  notes?: string;
+  customer: string;
+  items: string[];
+  affiliate: string;
+  afterDiscount?: number;
+  totalEstimatedWeight?: number;
+}

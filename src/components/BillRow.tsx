@@ -27,6 +27,7 @@ import {
   PopoverContent,
   PopoverHeader,
   PopoverTrigger,
+  Tag,
   Td,
   Tooltip,
   Tr,
@@ -138,16 +139,29 @@ export default function BillRow({ single, reloadPage }) {
           </Popover>
         </Td>
         <Td>
-          <NextLink href={`/customers/${single.customer._id}`}>
+          <NextLink href={`/users/${single.customer._id}`}>
             {`${single.customer.firstName} ${single.customer.lastName}`}
           </NextLink>
         </Td>
         <Td>
-          <NextLink href={`/affiliates/${single.affiliate._id}`}>
+          <NextLink href={`/users/${single.affiliate._id}`}>
             {`${single.affiliate.firstName} ${single.affiliate.lastName}`}
           </NextLink>
         </Td>
-        <Td>{single.status}</Td>
+        <Td>
+          <Tag
+            variant='outline'
+            colorScheme={
+              single.status === 'partially-paid'
+                ? 'blue'
+                : single.status === 'not-paid'
+                ? 'red'
+                : 'gray'
+            }
+          >
+            {single.status}
+          </Tag>
+        </Td>
         <Td>{single.moneyReceived}</Td>
         <Td>{single.actCharge}</Td>
         <Td>{single.notes ? single.notes : '-'}</Td>
@@ -171,6 +185,7 @@ export default function BillRow({ single, reloadPage }) {
                     onOpen();
                     currentItem.current = single._id;
                   }}
+                  isDisabled={single.status === 'fully-paid'}
                 >
                   Pay
                 </MenuItem>
@@ -227,7 +242,11 @@ export default function BillRow({ single, reloadPage }) {
             <ModalOverlay />
             <ModalContent>
               <Formik
-                initialValues={{ amount: 0 }}
+                initialValues={{
+                  amount: single.actCharge
+                    ? parseFloat(single.actCharge.slice(1).split(',').join(''))
+                    : '',
+                }}
                 onSubmit={(values) => pay(values)}
               >
                 {(props) => (
