@@ -1,7 +1,7 @@
 import React from 'react';
-import ContentHeader from '../../components/ContentHeader';
-import Header from '../../components/Header';
-import ContentBody from '../../components/styles/ContentBody';
+import ContentHeader from '../../../components/ContentHeader';
+import Header from '../../../components/Header';
+import ContentBody from '../../../components/styles/ContentBody';
 import {
   Alert,
   AlertIcon,
@@ -36,19 +36,19 @@ import {
   ModalOverlay,
   Input,
 } from '@chakra-ui/react';
-import { InputField } from '../../components/InputField';
-import { client } from '../../utils/api-client';
+import { InputField } from '../../../components/InputField';
+import { client } from '../../../utils/api-client';
 import { useMutation, useQuery, QueryClient } from 'react-query';
-import { BASE_URL, I_Item } from '../../constants';
+import { BASE_URL, I_Item } from '../../../constants';
 import { useRouter } from 'next/router';
 import { BiCheckCircle } from 'react-icons/bi';
 import NextLink from 'next/link';
 import { Formik, Form, Field, FieldInputProps } from 'formik';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { dehydrate } from 'react-query/hydration';
-import { useMe } from '../../hooks/useMe';
-import { removeBlankField } from '../../utils';
-import { I_Bill } from '../../types';
+import { useMe } from '../../../hooks/useMe';
+import { removeBlankField } from '../../../utils';
+import { I_Bill } from '../../../types';
 import { AiOutlineClose } from 'react-icons/ai';
 
 interface Item_Interface {
@@ -83,18 +83,31 @@ interface I_Item_Form {
   notes?: string;
 }
 
-export default function NewBill() {
+export default function EditBill({ id }: { id: string }) {
   const router = useRouter();
   const { user, isLoading: isUserLoading, status: currentUserStatus } = useMe();
   const [items, setItems] = React.useState<Item_Interface[]>([]);
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    data: billData,
 
-  React.useEffect(() => {
-    setItems(
-      JSON.parse(localStorage?.getItem('items-in-current-bill') || '[]')
-    );
-  }, []);
+    status: getBillStatus,
+    error: getBillError,
+  } = useQuery(
+    ['bill', id],
+    () =>
+      client(`${BASE_URL}/bills/${id}`, {
+        credentials: 'include',
+      }),
+    {
+      onSuccess: (data) => {
+        setItems(data.data.data.items);
+      },
+    }
+  );
+  const bill = getBillStatus === 'success' && billData.data.data;
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const { mutate, isLoading, isError, error, isSuccess, reset } = useMutation(
     (data: I_Item_Form) =>
@@ -132,8 +145,8 @@ export default function NewBill() {
     isSuccess: isBillSuccess,
   } = useMutation(
     (data: I_Bill) =>
-      client(`${BASE_URL}/bills`, {
-        method: 'POST',
+      client(`${BASE_URL}/bills/${id}`, {
+        method: 'PATCH',
         body: JSON.stringify(removeBlankField(data)),
         headers: {
           'Content-Type': 'application/json',
@@ -155,27 +168,38 @@ export default function NewBill() {
 
   return (
     <>
-      <Header title='Create a new bill' />
+      <Header title={`Edit bill ${id}`} />
       <ContentHeader
-        title='Create a new bill'
+        title={`Edit bill ${id}`}
         user={user}
         isLoading={isUserLoading}
         status={currentUserStatus}
       />
       <ContentBody>
         <Box maxW='1080px' width='100%'>
-          {router.query.customer !== undefined && (
+          {getBillStatus === 'loading' ? null : getBillStatus === 'error' ? (
+            <Alert status='error'>
+              <AlertIcon />
+              <AlertTitle>{(getBillError as Error).message}</AlertTitle>
+            </Alert>
+          ) : getBillStatus === 'success' ? (
             <Formik
               initialValues={{
-                notes: '',
-                customer: router.query.customer.toString(),
-                usdVndRate: 24000,
+                notes: bill.notes || '',
+                customer: bill.customer._id,
+                usdVndRate: parseFloat(
+                  bill.usdVndRate.slice(1).split(',').join('')
+                ),
                 shippingRateToVn: {
-                  value: 12,
-                  currency: 'usd',
+                  value: parseFloat(
+                    bill.shippingRateToVn.slice(1).split(',').join('')
+                  ),
+                  currency: bill.shippingRateToVn[0] === '$' ? 'usd' : 'vnd',
                 },
-                customTax: 8.75,
-                affiliate: '',
+                customTax: parseFloat(
+                  bill.customTax.slice(0, bill.customTax.length - 1)
+                ),
+                affiliate: bill.affiliate._id,
               }}
               onSubmit={(values) => {
                 createBill({
@@ -205,7 +229,7 @@ export default function NewBill() {
                     <Alert status='success'>
                       <AlertIcon />
                       <AlertTitle mr={2}>
-                        Bill created! Redirecting...
+                        Bill {id} updated! Redirecting...
                       </AlertTitle>
                     </Alert>
                   )}
@@ -417,7 +441,7 @@ export default function NewBill() {
                                   mutate(values);
                                 }}
                               >
-                                {(props) => (
+                                {() => (
                                   <Form>
                                     {isError && (
                                       <Alert status='error' mb='16px'>
@@ -613,7 +637,7 @@ export default function NewBill() {
                 </Form>
               )}
             </Formik>
-          )}
+          ) : null}
         </Box>
       </ContentBody>
     </>
@@ -623,6 +647,7 @@ export default function NewBill() {
 export const getServerSideProps: GetServerSideProps = async function ({
   req,
   res,
+  params,
 }: GetServerSidePropsContext) {
   const queryClient = new QueryClient();
   try {
@@ -637,7 +662,7 @@ export const getServerSideProps: GetServerSideProps = async function ({
     );
 
     return {
-      props: { dehydratedState: dehydrate(queryClient) },
+      props: { dehydratedState: dehydrate(queryClient), id: params!.id },
     };
   } catch (err) {
     return {
