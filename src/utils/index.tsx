@@ -40,4 +40,13 @@ export function removeBlankField(obj: object) {
   return copy;
 }
 
+export function renderDate(dateStr: string) {
+  return new Date(dateStr).toLocaleString('vi-VN', {
+    month: 'long',
+    year: 'numeric',
+    day: 'numeric',
+    timeZone: 'utc',
+  });
+}
+
 export { truncate };

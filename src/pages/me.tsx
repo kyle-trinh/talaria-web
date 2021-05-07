@@ -18,18 +18,30 @@ import {
   Input,
   SkeletonCircle,
   Text,
+  Tag,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverArrow,
+  PopoverCloseButton,
+  PopoverHeader,
+  PopoverBody,
 } from '@chakra-ui/react';
-import { RiEditFill } from 'react-icons/ri';
-import { useRef } from 'react';
+import { RiBankFill, RiEditFill } from 'react-icons/ri';
+import React, { useRef } from 'react';
 import { BASE_URL } from '../constants';
 import NextLink from 'next/link';
 import ExternalLink from '../components/ExternalLink';
 import { useMe } from '../hooks/useMe';
+import { renderDate } from '../utils';
+import { TiSocialFacebookCircular } from 'react-icons/ti';
+import { ImPhone } from 'react-icons/im';
+import { FaAddressCard, FaPercentage } from 'react-icons/fa';
 
 const Profile = () => {
   const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { user, isLoading, status } = useMe();
+  const { user, isLoading, status: userStatus } = useMe();
 
   const {
     mutate,
@@ -55,7 +67,12 @@ const Profile = () => {
   return (
     <>
       <Header title='My profile' />
-      <ContentHeader title='My profile' user={user} isLoading={isLoading} />
+      <ContentHeader
+        title='My profile'
+        user={user}
+        isLoading={isLoading}
+        status={userStatus}
+      />
       <Box
         gridArea='main'
         bg='white'
@@ -114,167 +131,286 @@ const Profile = () => {
           </Box>
           {status === 'loading' || mutateStatus === 'loading' ? null : (
             <Box>
-              <Grid
-                gridTemplateColumns='repeat(3, 1fr)'
-                gridGap='32px'
-                borderBottom='1px solid gray.400'
+              <Text
+                as='h2'
+                textTransform='capitalize'
+                fontSize='32px'
+                color='gray.600'
+                fontWeight='bold'
               >
+                {user.firstName} {user?.lastName}
+              </Text>
+              <Tag
+                colorScheme='teal'
+                variant='solid'
+                textTransform='capitalize'
+              >
+                {user.role}
+              </Tag>
+              <Box mt='16px'>
                 <Text
-                  gridColumn='1 / span 1'
+                  as='h3'
                   fontWeight='bold'
-                  color='gray.600'
+                  color='gray.500'
+                  fontSize='20px'
+                  textTransform='uppercase'
                 >
-                  First Name
+                  Personal Information
                 </Text>
-                <Text gridColumn='2 / span 2' textTransform='capitalize'>
-                  {user.firstName}
-                </Text>
-              </Grid>
-              <Grid gridTemplateColumns='repeat(3, 1fr)' gridGap='32px'>
-                <Text
-                  gridColumn='1 / span 1'
-                  fontWeight='bold'
-                  color='gray.600'
+                <Grid
+                  gridTemplateColumns='repeat(2, 1fr)'
+                  gridGap='16px'
+                  gridColumnGap='24px'
                 >
-                  Last Name
-                </Text>
-                <Text gridColumn='2 / span 2' textTransform='capitalize'>
-                  {user.lastName}
-                </Text>
-              </Grid>
-              <Grid gridTemplateColumns='repeat(3, 1fr)' gridGap='32px'>
-                <Text
-                  gridColumn='1 / span 1'
-                  fontWeight='bold'
-                  color='gray.600'
-                >
-                  Email
-                </Text>
-                <Text gridColumn='2 / span 2'>{user.email}</Text>
-              </Grid>
-              <Grid gridTemplateColumns='repeat(3, 1fr)' gridGap='32px'>
-                <Text
-                  gridColumn='1 / span 1'
-                  fontWeight='bold'
-                  color='gray.600'
-                >
-                  Role
-                </Text>
-                <Text gridColumn='2 / span 2' textTransform='capitalize'>
-                  {user.role}
-                </Text>
-              </Grid>
-              <Grid gridTemplateColumns='repeat(3, 1fr)' gridGap='32px'>
-                <Text
-                  gridColumn='1 / span 1'
-                  fontWeight='bold'
-                  color='gray.600'
-                >
-                  Phone number
-                </Text>
-                <Text gridColumn='2 / span 2' textTransform='capitalize'>
-                  {user.profile.phoneNumbers.length > 0
-                    ? user.profile.phoneNumbers[
-                        user.profile.phoneNumbers.length - 1
-                      ]
-                    : 'N/A'}
-                </Text>
-              </Grid>
-              <Grid gridTemplateColumns='repeat(3, 1fr)' gridGap='32px'>
-                <Text
-                  gridColumn='1 / span 1'
-                  fontWeight='bold'
-                  color='gray.600'
-                >
-                  Date of birth
-                </Text>
-                <Text gridColumn='2 / span 2' textTransform='capitalize'>
-                  {user.profile.dob}
-                </Text>
-              </Grid>
+                  <Box>
+                    <Title text='Email' />
+                    <Text>{user.email}</Text>
+                  </Box>
+                  <Box>
+                    <Title text='Date of birth' />
+                    <Text>{renderDate(user.profile.dob)}</Text>
+                  </Box>
+                  <Box>
+                    <Popover>
+                      <PopoverTrigger>
+                        <Button
+                          rightIcon={<TiSocialFacebookCircular />}
+                          variant='outline'
+                          colorScheme='teal'
+                          size='sm'
+                        >
+                          Social medias
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <PopoverArrow />
+                        <PopoverCloseButton />
+                        <PopoverHeader>Social medias</PopoverHeader>
+                        <PopoverBody>
+                          {user.profile.socialMedias.length === 0 && (
+                            <Text>N/A</Text>
+                          )}
+                          <List>
+                            {user.profile.socialMedias.map((social) => (
+                              <ExternalLink
+                                href={`http://${social.link}`}
+                                key={social._id}
+                              >
+                                <ListItem>{social.link}</ListItem>
+                              </ExternalLink>
+                            ))}
+                          </List>
+                        </PopoverBody>
+                      </PopoverContent>
+                    </Popover>
+                  </Box>
+                  <Box>
+                    <Popover>
+                      <PopoverTrigger>
+                        <Button
+                          rightIcon={<ImPhone />}
+                          variant='outline'
+                          colorScheme='teal'
+                          size='sm'
+                        >
+                          Phone numbers
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <PopoverArrow />
+                        <PopoverCloseButton />
+                        <PopoverHeader>Phone numbers</PopoverHeader>
+                        <PopoverBody>
+                          {user.profile.phoneNumbers.length === 0 && (
+                            <Text>N/A</Text>
+                          )}
+                          <List>
+                            {user.profile.phoneNumbers.map((number, index) => (
+                              <ExternalLink href={`tel:${number}`} key={index}>
+                                <ListItem>
+                                  {number}{' '}
+                                  {index ===
+                                    user.profile.phoneNumbers.length - 1 &&
+                                    ' - Newest'}
+                                </ListItem>
+                              </ExternalLink>
+                            ))}
+                          </List>
+                        </PopoverBody>
+                      </PopoverContent>
+                    </Popover>
+                  </Box>
+
+                  <Box>
+                    <Popover>
+                      <PopoverTrigger>
+                        <Button
+                          rightIcon={<FaPercentage />}
+                          variant='outline'
+                          colorScheme='teal'
+                          size='sm'
+                        >
+                          Commission rates
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <PopoverArrow />
+                        <PopoverCloseButton />
+                        <PopoverHeader>Commission Rates</PopoverHeader>
+                        <PopoverBody>
+                          <List>
+                            <VStack
+                              spacing='6px'
+                              justifyContent='center'
+                              alignItems='flex-start'
+                            >
+                              {user.profile.commissionRates.map((rate) => (
+                                <ListItem key={rate._id}>
+                                  <Tag
+                                    colorScheme='teal'
+                                    mr='6px'
+                                    variant='solid'
+                                  >
+                                    {rate.website}
+                                  </Tag>
+                                  {parseFloat(
+                                    rate.rate['$numberDecimal']
+                                  ).toLocaleString('en-GB', {
+                                    style: 'percent',
+                                    maximumSignificantDigits: 4,
+                                  })}
+                                </ListItem>
+                              ))}
+                            </VStack>
+                          </List>
+                        </PopoverBody>
+                      </PopoverContent>
+                    </Popover>
+                  </Box>
+
+                  <Box>
+                    <Popover>
+                      <PopoverTrigger>
+                        <Button
+                          rightIcon={<FaPercentage />}
+                          variant='outline'
+                          colorScheme='teal'
+                          size='sm'
+                        >
+                          Discount rates
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <PopoverArrow />
+                        <PopoverCloseButton />
+                        <PopoverHeader>Discount rates</PopoverHeader>
+                        <PopoverBody>
+                          <List>
+                            <VStack
+                              spacing='6px'
+                              alignItems='flex-start'
+                              justifyContent='center'
+                            >
+                              {user.profile.discountRates.map((rate) => (
+                                <ListItem key={rate._id}>
+                                  <Tag
+                                    colorScheme='teal'
+                                    mr='6px'
+                                    variant='solid'
+                                  >
+                                    {rate.website}
+                                  </Tag>
+                                  {parseFloat(
+                                    rate.rate['$numberDecimal']
+                                  ).toLocaleString('en-GB', {
+                                    style: 'percent',
+                                    maximumSignificantDigits: 4,
+                                  })}
+                                </ListItem>
+                              ))}
+                            </VStack>
+                          </List>
+                        </PopoverBody>
+                      </PopoverContent>
+                    </Popover>
+                  </Box>
+
+                  <Box>
+                    <Popover>
+                      <PopoverTrigger>
+                        <Button
+                          rightIcon={<RiBankFill />}
+                          variant='outline'
+                          colorScheme='teal'
+                          size='sm'
+                        >
+                          Bank accounts
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <PopoverArrow />
+                        <PopoverCloseButton />
+                        <PopoverHeader>Bank accounts</PopoverHeader>
+                        <PopoverBody>
+                          {user.profile.bankAccts.length === 0 && 'N/A'}
+                          <List>
+                            {user.profile.bankAccts.map((acct) => (
+                              <ListItem key={acct._id}>
+                                {acct.bankName} - {acct?.bankLocation}:{' '}
+                                {acct.acctNumber}
+                              </ListItem>
+                            ))}
+                          </List>
+                        </PopoverBody>
+                      </PopoverContent>
+                    </Popover>
+                  </Box>
+                  <Box>
+                    <Popover>
+                      <PopoverTrigger>
+                        <Button
+                          rightIcon={<FaAddressCard />}
+                          variant='outline'
+                          colorScheme='teal'
+                          size='sm'
+                        >
+                          Address
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <PopoverArrow />
+                        <PopoverCloseButton />
+                        <PopoverHeader>Address</PopoverHeader>
+                        <PopoverBody>
+                          {user.profile.address.length === 0 && 'N/A'}
+                          <List>
+                            {user.profile.address.map((single) => (
+                              <ListItem key={single._id}>
+                                {single.streetAddr}, {single.city}
+                              </ListItem>
+                            ))}
+                          </List>
+                        </PopoverBody>
+                      </PopoverContent>
+                    </Popover>
+                  </Box>
+                </Grid>
+              </Box>
             </Box>
           )}
         </HStack>
-        {status === 'loading' || mutateStatus === 'loading' ? null : (
-          <Box mt='40px'>
-            <Text as='h2' fontSize='32px' fontWeight='bold' color='gray.500'>
-              Profile details
-            </Text>
-            <VStack alignItems='flex-start'>
-              <Box>
-                <Text as='h3' fontSize='20px'>
-                  Social medias
-                </Text>
-                <List>
-                  {user.profile.socialMedias.map((social) => (
-                    <ExternalLink
-                      href={`http://${social.link}`}
-                      key={social._id}
-                    >
-                      <ListItem key={social._id}>
-                        {social.website}: {social.link}
-                      </ListItem>
-                    </ExternalLink>
-                  ))}
-                </List>
-              </Box>
-              <Box>
-                <Text as='h3' fontSize='20px'>
-                  Commission Rates
-                </Text>
-                <List>
-                  {user.profile.commissionRates.map((rate) => (
-                    <ListItem key={rate._id}>
-                      {rate.website}:{' '}
-                      {parseFloat(rate.rate['$numberDecimal']).toLocaleString(
-                        'en-GB',
-                        {
-                          style: 'percent',
-                          maximumSignificantDigits: 4,
-                        }
-                      )}
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
-              <Box>
-                <Text as='h3' fontSize='20px'>
-                  Bank accounts
-                </Text>
-                <Text>{user.profile.bankAccts.length === 0 && 'N/A'}</Text>
-                <List>
-                  {user.profile.bankAccts.map((acct) => (
-                    <ListItem key={acct._id}>
-                      {acct.bankName} - {acct.bankLocation}: {acct.acctNumber}
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
-              <Box>
-                <Text as='h3' fontSize='20px'>
-                  Address
-                </Text>
-
-                {user.profile.address.length > 0 ? (
-                  <Text>
-                    {
-                      user.profile.address[user.profile.address.length - 1]
-                        .streetAddr
-                    }
-                    ,{' '}
-                    {user.profile.address[user.profile.address.length - 1].city}
-                  </Text>
-                ) : (
-                  'N/A'
-                )}
-              </Box>
-            </VStack>
-          </Box>
-        )}
       </Box>
     </>
   );
 };
+
+function Title({ text, ...props }) {
+  return (
+    <Text fontWeight='bold' color='gray.400' {...props}>
+      {text}
+    </Text>
+  );
+}
 
 export const getServerSideProps: GetServerSideProps = async function ({
   req,

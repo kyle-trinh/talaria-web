@@ -8,6 +8,7 @@ import {
   ListIcon,
   ListItem,
   Text,
+  VStack,
 } from '@chakra-ui/layout';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/table';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
@@ -60,6 +61,7 @@ import { RiBankFill } from 'react-icons/ri';
 import { Form, Formik } from 'formik';
 import { InputField } from '../../../components/InputField';
 import { BiCheckCircle } from 'react-icons/bi';
+import { renderDate } from '../../../utils';
 
 export default function AffiliateDetail({ id }) {
   const router = useRouter();
@@ -67,7 +69,7 @@ export default function AffiliateDetail({ id }) {
 
   const queryClient = useQueryClient();
 
-  const { data, status: affiliateStatus } = useQuery(['affiliate', id], () =>
+  const { data, status: affiliateStatus } = useQuery(['user', id], () =>
     client(`${BASE_URL}/users/${id}`, { credentials: 'include' })
   );
   const currentDate = new Date(Date.now());
@@ -193,7 +195,7 @@ export default function AffiliateDetail({ id }) {
                       </Box>
                       <Box>
                         <Title text='Date of birth' />
-                        <Text>{affiliate.profile.dob}</Text>
+                        <Text>{renderDate(affiliate.profile.dob)}</Text>
                       </Box>
                       <Box>
                         <Popover>
@@ -212,6 +214,9 @@ export default function AffiliateDetail({ id }) {
                             <PopoverCloseButton />
                             <PopoverHeader>Social medias</PopoverHeader>
                             <PopoverBody>
+                              {affiliate.profile.socialMedias.length === 0 && (
+                                <Text>N/A</Text>
+                              )}
                               <List>
                                 {affiliate.profile.socialMedias.map(
                                   (social) => (
@@ -245,6 +250,9 @@ export default function AffiliateDetail({ id }) {
                             <PopoverCloseButton />
                             <PopoverHeader>Phone numbers</PopoverHeader>
                             <PopoverBody>
+                              {affiliate.profile.phoneNumbers.length === 0 && (
+                                <Text>N/A</Text>
+                              )}
                               <List>
                                 {affiliate.profile.phoneNumbers.map(
                                   (number, index) => (
@@ -268,6 +276,57 @@ export default function AffiliateDetail({ id }) {
                         </Popover>
                       </Box>
 
+                      {affiliate.role !== 'customer' && (
+                        <Box>
+                          <Popover>
+                            <PopoverTrigger>
+                              <Button
+                                rightIcon={<FaPercentage />}
+                                variant='outline'
+                                colorScheme='teal'
+                                size='sm'
+                              >
+                                Commission rates
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent>
+                              <PopoverArrow />
+                              <PopoverCloseButton />
+                              <PopoverHeader>Commission Rates</PopoverHeader>
+                              <PopoverBody>
+                                <List>
+                                  <VStack
+                                    spacing='6px'
+                                    justifyContent='center'
+                                    alignItems='flex-start'
+                                  >
+                                    {affiliate.profile.commissionRates.map(
+                                      (rate) => (
+                                        <ListItem key={rate._id}>
+                                          <Tag
+                                            colorScheme='teal'
+                                            mr='6px'
+                                            variant='solid'
+                                          >
+                                            {rate.website}
+                                          </Tag>
+                                          {parseFloat(
+                                            rate.rate['$numberDecimal']
+                                          ).toLocaleString('en-GB', {
+                                            style: 'percent',
+                                            maximumSignificantDigits: 4,
+                                          })}
+                                        </ListItem>
+                                      )
+                                    )}
+                                  </VStack>
+                                </List>
+                              </PopoverBody>
+                            </PopoverContent>
+                          </Popover>
+                        </Box>
+                      )}
+
                       <Box>
                         <Popover>
                           <PopoverTrigger>
@@ -277,39 +336,46 @@ export default function AffiliateDetail({ id }) {
                               colorScheme='teal'
                               size='sm'
                             >
-                              Commission rates
+                              Discount rates
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent>
                             <PopoverArrow />
                             <PopoverCloseButton />
-                            <PopoverHeader>Commission Rates</PopoverHeader>
+                            <PopoverHeader>Discount rates</PopoverHeader>
                             <PopoverBody>
                               <List>
-                                {affiliate.profile.commissionRates.map(
-                                  (rate) => (
-                                    <ListItem key={rate._id}>
-                                      <Tag
-                                        colorScheme='teal'
-                                        mr='6px'
-                                        variant='solid'
-                                      >
-                                        {rate.website}
-                                      </Tag>
-                                      {parseFloat(
-                                        rate.rate['$numberDecimal']
-                                      ).toLocaleString('en-GB', {
-                                        style: 'percent',
-                                        maximumSignificantDigits: 4,
-                                      })}
-                                    </ListItem>
-                                  )
-                                )}
+                                <VStack
+                                  spacing='6px'
+                                  alignItems='flex-start'
+                                  justifyContent='center'
+                                >
+                                  {affiliate.profile.discountRates.map(
+                                    (rate) => (
+                                      <ListItem key={rate._id}>
+                                        <Tag
+                                          colorScheme='teal'
+                                          mr='6px'
+                                          variant='solid'
+                                        >
+                                          {rate.website}
+                                        </Tag>
+                                        {parseFloat(
+                                          rate.rate['$numberDecimal']
+                                        ).toLocaleString('en-GB', {
+                                          style: 'percent',
+                                          maximumSignificantDigits: 4,
+                                        })}
+                                      </ListItem>
+                                    )
+                                  )}
+                                </VStack>
                               </List>
                             </PopoverBody>
                           </PopoverContent>
                         </Popover>
                       </Box>
+
                       <Box>
                         <Popover>
                           <PopoverTrigger>
@@ -503,8 +569,9 @@ function Bills({ id }) {
           <Button
             colorScheme='teal'
             disabled={
-              status === 'success' &&
-              page === Math.ceil(data.data.totalCount / limit)
+              (status === 'success' &&
+                page === Math.ceil(data.data.totalCount / limit)) ||
+              data?.data?.totalCount === 0
             }
             onClick={() => setPage((p) => p + 1)}
           >

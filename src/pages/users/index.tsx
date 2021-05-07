@@ -58,6 +58,7 @@ import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { useMe } from '../../hooks/useMe';
 import Filter from '../../components/Options/Filter';
 import { Field } from 'formik';
+import { renderDate } from '../../utils';
 const layout = Array.from({ length: 8 });
 
 const LoadingLayout = () => (
@@ -301,7 +302,7 @@ function UserRow({ single, reloadPage }) {
           : '-'}
       </Td>
       <Td>{single.email}</Td>
-      <Td>{single.profile.dob || '-'}</Td>
+      <Td>{single.profile.dob ? renderDate(single.profile.dob) : '-'}</Td>
       <Td>
         <Tag
           variant='outline'

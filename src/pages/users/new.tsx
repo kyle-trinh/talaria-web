@@ -183,6 +183,7 @@ export default function NewUser() {
                 customerType: '',
                 address: [],
                 discountRates: [],
+                bankAccts: [],
               },
             }}
             onSubmit={(values: I_FormData) => {
@@ -194,10 +195,12 @@ export default function NewUser() {
                   socialMedias,
                   phoneNumbers,
                   dob: values.profile.dob,
-                  commissionRates,
+                  commissionRates:
+                    values.role !== 'customer' ? commissionRates : [],
                   customerType: values.profile.customerType || undefined,
                   address,
                   discountRates,
+                  bankAccts,
                 },
               });
             }}
