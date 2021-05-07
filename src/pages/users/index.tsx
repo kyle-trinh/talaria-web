@@ -53,7 +53,6 @@ import { client } from '../../utils/api-client';
 import { Sort } from '../../components/Options';
 import ContentHeader from '../../components/ContentHeader';
 import Link from 'next/link';
-import ExternalLink from '../../components/ExternalLink';
 import { dehydrate } from 'react-query/hydration';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { useMe } from '../../hooks/useMe';
@@ -65,7 +64,7 @@ const LoadingLayout = () => (
   <>
     {layout.map((_item, i) => (
       <Tr height='57px' key={i}>
-        {ITEM_DEFAULT.map((field, index) => {
+        {ITEM_DEFAULT.map((_field, index) => {
           return (
             <Td key={index}>
               <Skeleton height='16px' />
@@ -80,18 +79,15 @@ const LoadingLayout = () => (
   </>
 );
 const Cryptos = () => {
-  const [freezeNo, setFreezeNo] = useState(4);
   const [selected, setSelected] = useState(GIFT_CARD_DEFAULT);
   const [sort, setSort] = useState('_id:desc');
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
   const [filter, setFilter] = useState('');
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const currentItem = useRef('');
   const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const [fieldName, fieldOrder] = sort.split(':');
   const { status, data, error } = useQuery(
-    ['affiliates', page, selected, sort, limit, filter],
+    ['users', page, sort, limit, filter],
 
     () =>
       client(
@@ -104,7 +100,7 @@ const Cryptos = () => {
   const queryClient = useQueryClient();
 
   const reloadPage = () => {
-    queryClient.invalidateQueries(['affiliates', page, selected, sort, limit]);
+    queryClient.invalidateQueries(['users', page, sort, limit]);
   };
 
   return (
@@ -129,7 +125,7 @@ const Cryptos = () => {
       >
         <Box>
           <HStack spacing={2} justifyContent='flex-end'>
-            <NextLink href='/affiliates/new' passHref>
+            <NextLink href='/users/new' passHref>
               <Button colorScheme='teal'>Add user +</Button>
             </NextLink>
             <Filter
@@ -175,9 +171,6 @@ const Cryptos = () => {
               <Table>
                 <Thead>
                   <Tr>
-                    <Th textTransform='capitalize' bg='gray.300'>
-                      Id
-                    </Th>
                     <Th textTransform='capitalize' bg='gray.300'>
                       Created At
                     </Th>
@@ -300,15 +293,6 @@ function UserRow({ single, reloadPage }) {
   );
   return (
     <Tr key={single._id}>
-      <Td>
-        <Tooltip label={single._id} aria-label='Tooltop'>
-          <span>
-            <Link href={`/users/${single._id}`}>
-              {single._id.slice(0, 16) + '...'}
-            </Link>
-          </span>
-        </Tooltip>
-      </Td>
       <Td>{single.createdAt}</Td>
       <Td>{`${single.firstName} ${single?.lastName}`}</Td>
       <Td>
@@ -346,6 +330,9 @@ function UserRow({ single, reloadPage }) {
             borderRadius='50%'
           />
           <MenuList>
+            <Link href={`/users/${single._id}`} passHref>
+              <MenuItem>View details</MenuItem>
+            </Link>
             <Link href={`/users/${single._id}/edit`} passHref>
               <MenuItem>Edit</MenuItem>
             </Link>
