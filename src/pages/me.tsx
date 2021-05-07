@@ -91,7 +91,7 @@ const Profile = () => {
           alignItems='center'
         >
           <Box position='relative' width='250px' mr='32px'>
-            {status === 'loading' || mutateStatus === 'loading' ? (
+            {userStatus === 'loading' || mutateStatus === 'loading' ? (
               <SkeletonCircle w='200px' h='200px' />
             ) : (
               <Image
@@ -129,7 +129,7 @@ const Profile = () => {
               right={'20px'}
             />
           </Box>
-          {status === 'loading' || mutateStatus === 'loading' ? null : (
+          {userStatus === 'loading' || mutateStatus === 'loading' ? null : (
             <Box>
               <Text
                 as='h2'

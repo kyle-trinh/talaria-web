@@ -12,6 +12,7 @@ import {
   MenuIcon,
   MenuCommand,
   MenuDivider,
+  SkeletonCircle,
 } from '@chakra-ui/react';
 import React from 'react';
 import { HiOutlineViewGrid } from 'react-icons/hi';
@@ -76,13 +77,18 @@ export default function ContentHeader({
         {!isLoading && user && (
           <Menu>
             <MenuButton>
-              <Image
-                objectFit='cover'
-                boxSize='70px'
-                borderRadius='50%'
-                alt={`${user.firstName} ${user?.lastName}`}
-                src={`http://localhost:4444/api/v1/users/images/${user.profilePicture}`}
-              />
+              {status === 'loading' ? (
+                <SkeletonCircle w='50px' h='50px' />
+              ) : (
+                <Image
+                  objectFit='cover'
+                  boxSize='70px'
+                  borderRadius='50%'
+                  alt={`${user.firstName} ${user?.lastName}`}
+                  src={`http://localhost:4444/api/v1/users/images/${user.profilePicture}`}
+                  fallback={<SkeletonCircle w='50px' h='50px' />}
+                />
+              )}
             </MenuButton>
             <MenuList>
               <NextLink href='/me' passHref>
