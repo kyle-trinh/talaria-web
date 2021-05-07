@@ -90,7 +90,7 @@ const Cryptos = () => {
       client(
         `${BASE_URL}/cryptos?page=${page}&limit=${limit}&fields=${selected}&sort=${
           fieldOrder === 'desc' ? '-' : ''
-        }${fieldName}}`
+        }${fieldName}`
       )
   );
 
@@ -282,6 +282,7 @@ function CryptoRow({ single, selected, freezeNo, reloadPage }: I_Crypto_Row) {
         const [output, fullStr] = truncate(
           single[field as keyof I_Crypto],
           16,
+
           CRYPTO_FIELD_MAP[field as keyof I_Crypto].type
         );
         if (index < freezeNo) {
@@ -328,9 +329,6 @@ function CryptoRow({ single, selected, freezeNo, reloadPage }: I_Crypto_Row) {
             borderRadius='50%'
           />
           <MenuList>
-            <Link href={`/items/${single._id}/edit`} passHref>
-              <MenuItem>Edit</MenuItem>
-            </Link>
             <>
               <MenuItem
                 onClick={() => {

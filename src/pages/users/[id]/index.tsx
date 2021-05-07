@@ -113,11 +113,12 @@ export default function AffiliateDetail({ id }) {
 
   return (
     <>
-      <Header title='Affiliate details' />
+      <Header title='User details' />
       <ContentHeader
-        title='Affiliate details'
+        title='User details'
         user={user}
         isLoading={isLoading}
+        status={status}
       />
       <Box
         gridArea='main'

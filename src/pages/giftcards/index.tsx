@@ -9,16 +9,12 @@ import {
   Tr,
   Th,
   Td,
-  Select,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
   IconButton,
   Tooltip,
-  FormControl,
-  FormLabel,
-  VStack,
   useDisclosure,
   Modal,
   ModalOverlay,
@@ -32,67 +28,34 @@ import {
   AlertIcon,
   AlertTitle,
 } from '@chakra-ui/react';
-import { Formik, Form, Field } from 'formik';
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { RiMoreFill } from 'react-icons/ri';
 import Header from '../../components/Header';
-import { InputField } from '../../components/InputField';
 import NextLink from 'next/link';
 import {
   BASE_URL,
-  ITEM_FIELD_MAP,
   ITEM_DEFAULT,
-  ITEM_FIELD_MAP_2,
-  ITEM_FIELDS,
-  SELECT_STYLE,
-  ACCOUNTS,
-  CRYPTO_DEFAULT,
-  CRYPTO_FIELD_MAP,
-  CRYPTO_FIELDS,
   GIFT_CARD_DEFAULT,
   GIFT_CARD_MAP,
   GIFT_CARD_FIELDS,
 } from '../../constants';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  QueryClient,
+} from 'react-query';
 import { client } from '../../utils/api-client';
 import { truncate } from '../../utils/index';
 import { FreezeCol, Sort, LimitField } from '../../components/Options';
-import Filter from '../../components/Options/Filter';
 import { TableCeil } from '../../components/styles/Table';
 import ContentHeader from '../../components/ContentHeader';
 import Link from 'next/link';
-import { useItems, useDeleteItem } from '../../utils/items';
-export interface I_Item {
-  _id: string;
-  createdAt: string;
-  name: string;
-  link: string;
-  pricePerItem: string;
-  actPricePerItem: string;
-  quantity: string;
-  tax: string;
-  usShippingFee: string;
-  extraShippingCost: string;
-  estWgtPerItem: string;
-  actWgtPerItem: string;
-  actualCost: string;
-  trackingLink: string;
-  invoiceLink: string;
-  orderDate: string;
-  arrvlAtWarehouseDate: string;
-  customerRcvDate: string;
-  returnDate: string;
-  returnArrvlDate: string;
-  notes: string;
-  status: string;
-  website: string;
-  commissionRate: string;
-  itemType: string;
-  orderAccount: string;
-  warehouse: string;
-  transaction: string;
-  updatedAt: string;
-}
+import { GetServerSideProps, GetServerSidePropsContext } from 'next';
+import { dehydrate } from 'react-query/hydration';
+import { useMe } from '../../hooks/useMe';
+import { removeBlankField } from '../../utils';
+import { I_Giftcard } from '../../types';
 
 const layout = Array.from({ length: 8 });
 
@@ -120,14 +83,7 @@ const Cryptos = () => {
   const [sort, setSort] = useState('_id:desc');
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
-  const [filter, setFilter] = useState('');
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isOpen2,
-    onOpen: onOpen2,
-    onClose: onClose2,
-  } = useDisclosure();
-  const currentItem = useRef('');
+  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const [fieldName, fieldOrder] = sort.split(':');
   const { status, data, error } = useQuery(
     ['giftcards', page, selected, sort, limit],
@@ -135,70 +91,25 @@ const Cryptos = () => {
       client(
         `${BASE_URL}/giftcards?page=${page}&limit=${limit}&fields=${selected}&sort=${
           fieldOrder === 'desc' ? '-' : ''
-        }${fieldName} ${filter && `&${filter}`}`
+        }${fieldName}`
       )
   );
-  // const { status, data, error } = useQuery(
-  //   ["items", page, selected, sort, filter],
-  //   () =>
-  //     client(
-  //       `${BASE_URL}/items?page=${page}&limit=${limit}&fields=${selected}&sort=${
-  //         fieldOrder === "desc" ? "-" : ""
-  //       }${fieldName}${filter && `&${filter}`}`
-  //     )
-  // );
 
   const queryClient = useQueryClient();
 
-  const {
-    mutate: deleteItem,
-    error: deleteError,
-    isError: isDeleteError,
-    isLoading: isDeleteLoading,
-    reset: resetDelete,
-  } = useMutation(
-    (data) =>
-      client(`${BASE_URL}/giftcards/${data}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      }),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries([
-          'giftcards',
-          page,
-          selected,
-          sort,
-          limit,
-        ]);
-        onClose2();
-      },
-    }
-  );
+  const reloadPage = () => {
+    queryClient.invalidateQueries(['giftcards', page, selected, sort, limit]);
+  };
 
-  const {
-    mutate: charge,
-    error: chargeError,
-    isError: isChargeError,
-    isLoading: isChargeLoading,
-    reset: resetCharge,
-  } = useMutation(
-    (data: { id: string; accountId: string }) =>
-      client(`${BASE_URL}/items/${data.id}/${data.accountId}`, {
-        method: 'PATCH',
-        credentials: 'include',
-      }),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['items', page, selected, sort, filter]);
-        onClose();
-      },
-    }
-  );
   return (
     <>
       <Header title='Giftcards' />
-      <ContentHeader title='Giftcards' />
+      <ContentHeader
+        title='Giftcards'
+        user={user}
+        isLoading={isUserLoading}
+        status={userStatus}
+      />
       <Box
         gridArea='main'
         bg='white'
@@ -229,11 +140,6 @@ const Cryptos = () => {
               map={GIFT_CARD_MAP}
             />
           </HStack>
-          {/* {status === "loading" ? (
-            <Spinner position="absolute" top="50%" left="50%" />
-          ) : status === "error" ? (
-            <span>{(error as Error).message}</span>
-          ) : ( */}
           <Box marginTop={8} w='100%'>
             <Box
               position='relative'
@@ -252,7 +158,7 @@ const Cryptos = () => {
                           index={index}
                           freezeNo={freezeNo}
                         >
-                          {GIFT_CARD_MAP[field].full}
+                          {GIFT_CARD_MAP[field as keyof I_Giftcard].full}
                         </TableCeil>
                       );
                     })}
@@ -274,123 +180,27 @@ const Cryptos = () => {
                   {status === 'loading' ? (
                     <LoadingLayout />
                   ) : status === 'error' ? (
-                    <span>{(error as Error).message}</span>
+                    <Tr>
+                      <Td>
+                        <span>{(error as Error).message}</span>
+                      </Td>
+                    </Tr>
                   ) : (
                     <>
-                      {data.data.data.map((single: I_Item) => (
-                        <Tr key={single._id}>
-                          {selected.map((field, index) => {
-                            const [output, fullStr] = truncate(
-                              single[field],
-                              16,
-                              GIFT_CARD_MAP[field].type
-                            );
-                            if (index < freezeNo) {
-                              return (
-                                <Td
-                                  position='sticky'
-                                  maxW={200}
-                                  minW={200}
-                                  left={200 * index}
-                                  backgroundColor='gray.50'
-                                  key={index}
-                                >
-                                  <Tooltip
-                                    label={fullStr}
-                                    aria-label='A tooltip'
-                                  >
-                                    <span>{output}</span>
-                                  </Tooltip>
-                                </Td>
-                              );
-                            } else {
-                              return <Td key={index}>{output}</Td>;
-                            }
-                          })}
-                          <Td
-                            right={0}
-                            position='sticky'
-                            maxW='100px'
-                            minW='100px'
-                            textTransform='capitalize'
-                            bg='gray.50'
-                            _hover={{ zIndex: 1 }}
-                          >
-                            <Menu>
-                              <MenuButton
-                                as={IconButton}
-                                aria-label='More options'
-                                icon={<RiMoreFill />}
-                                variant='outline'
-                                size='xs'
-                                borderRadius='50%'
-                              />
-                              <MenuList>
-                                <Link
-                                  href={`/giftcards/${single._id}/edit`}
-                                  passHref
-                                >
-                                  <MenuItem>Edit</MenuItem>
-                                </Link>
-                                <>
-                                  <MenuItem
-                                    onClick={() => {
-                                      currentItem.current = single._id;
-                                      onOpen2();
-                                    }}
-                                  >
-                                    Delete
-                                  </MenuItem>
-                                  <Modal
-                                    isOpen={isOpen2}
-                                    onClose={() => {
-                                      onClose2();
-                                      resetDelete();
-                                    }}
-                                    isCentered
-                                  >
-                                    <ModalOverlay />
-                                    <ModalContent>
-                                      <ModalHeader>Alert</ModalHeader>
-                                      <ModalCloseButton />
-                                      <ModalBody>
-                                        {isDeleteError && (
-                                          <Alert status='error'>
-                                            <AlertIcon />
-                                            <AlertTitle>
-                                              {(deleteError as Error).message}
-                                            </AlertTitle>
-                                          </Alert>
-                                        )}
-                                        <p>Are you sure you want to delete?</p>
-                                      </ModalBody>
-                                      <ModalFooter>
-                                        <Button
-                                          isLoading={isDeleteLoading}
-                                          colorScheme='red'
-                                          onClick={() => {
-                                            deleteItem(currentItem.current);
-                                          }}
-                                        >
-                                          Delete
-                                        </Button>
-                                        <Button onClick={onClose2}>
-                                          Cancel
-                                        </Button>
-                                      </ModalFooter>
-                                    </ModalContent>
-                                  </Modal>
-                                </>
-                              </MenuList>
-                            </Menu>
-                          </Td>
-                        </Tr>
+                      {data.data.data.map((single: I_Giftcard) => (
+                        <GiftcardRow
+                          single={single}
+                          key={single._id}
+                          reloadPage={reloadPage}
+                          selected={selected}
+                          freezeNo={freezeNo}
+                        />
                       ))}
                       {Array.from({ length: 8 - data.data.data.length }).map(
-                        (item, i) => (
+                        (_item, i) => (
                           <Tr key={i} height='57px'>
-                            {selected.map((field, index) => (
-                              <Td></Td>
+                            {selected.map((_field, index) => (
+                              <Td key={index}></Td>
                             ))}
                             <Td
                               right={0}
@@ -415,12 +225,7 @@ const Cryptos = () => {
               >
                 Prev
               </Button>
-              <p>
-                {page} of{' '}
-                {status === 'loading'
-                  ? 'X'
-                  : Math.ceil(data.data.totalCount / limit)}
-              </p>
+              <p>Page {page}</p>
               <Button
                 colorScheme='teal'
                 disabled={
@@ -439,6 +244,185 @@ const Cryptos = () => {
       </Box>
     </>
   );
+};
+
+interface I_GiftcardRow {
+  single: I_Giftcard;
+  reloadPage: () => void;
+  selected: string[];
+  freezeNo: number;
+}
+
+function GiftcardRow({
+  single,
+  reloadPage,
+  selected,
+  freezeNo,
+}: I_GiftcardRow) {
+  const {
+    isOpen: isOpen2,
+    onOpen: onOpen2,
+    onClose: onClose2,
+  } = useDisclosure();
+  const {
+    mutate: deleteItem,
+    error: deleteError,
+    isError: isDeleteError,
+    isLoading: isDeleteLoading,
+    reset: resetDelete,
+  } = useMutation(
+    (data: string) =>
+      client(`${BASE_URL}/giftcards/${data}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }),
+    {
+      onSuccess: () => {
+        reloadPage();
+        onClose2();
+      },
+    }
+  );
+
+  return (
+    <Tr>
+      {selected.map((field, index) => {
+        const [output, fullStr] = truncate(
+          single[field as keyof I_Giftcard],
+          16,
+          GIFT_CARD_MAP[field as keyof I_Giftcard].type,
+          field === 'toAccount' || field === 'fromAccount'
+            ? 'accounts'
+            : field === 'transaction'
+            ? 'transactions'
+            : field === '_id'
+            ? 'giftcards'
+            : undefined
+        );
+        if (index < freezeNo) {
+          return (
+            <Td
+              position='sticky'
+              maxW={200}
+              minW={200}
+              left={200 * index}
+              backgroundColor='gray.50'
+              key={index}
+            >
+              <Tooltip label={fullStr} aria-label='A tooltip'>
+                <span>{output}</span>
+              </Tooltip>
+            </Td>
+          );
+        } else {
+          return (
+            <Td key={index}>
+              <Tooltip label={fullStr} aria-label='A tooltip'>
+                <span>{output}</span>
+              </Tooltip>
+            </Td>
+          );
+        }
+      })}
+      <Td
+        right={0}
+        position='sticky'
+        maxW='100px'
+        minW='100px'
+        textTransform='capitalize'
+        bg='gray.50'
+        _hover={{ zIndex: 1 }}
+      >
+        <Menu>
+          <MenuButton
+            as={IconButton}
+            aria-label='More options'
+            icon={<RiMoreFill />}
+            variant='outline'
+            size='xs'
+            borderRadius='50%'
+          />
+          <MenuList>
+            <>
+              <MenuItem
+                onClick={() => {
+                  onOpen2();
+                }}
+              >
+                Delete
+              </MenuItem>
+              <Modal
+                isOpen={isOpen2}
+                onClose={() => {
+                  onClose2();
+                  resetDelete();
+                }}
+                isCentered
+              >
+                <ModalOverlay />
+                <ModalContent>
+                  <ModalHeader>Alert</ModalHeader>
+                  <ModalCloseButton />
+                  <ModalBody>
+                    {isDeleteError && (
+                      <Alert status='error'>
+                        <AlertIcon />
+                        <AlertTitle>
+                          {(deleteError as Error).message}
+                        </AlertTitle>
+                      </Alert>
+                    )}
+                    <p>Are you sure you want to delete?</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      isLoading={isDeleteLoading}
+                      colorScheme='red'
+                      onClick={() => {
+                        deleteItem(single._id);
+                      }}
+                    >
+                      Delete
+                    </Button>
+                    <Button onClick={onClose2}>Cancel</Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
+            </>
+          </MenuList>
+        </Menu>
+      </Td>
+    </Tr>
+  );
+}
+
+export const getServerSideProps: GetServerSideProps = async function ({
+  req,
+  res,
+}: GetServerSidePropsContext) {
+  const queryClient = new QueryClient();
+  try {
+    await queryClient.fetchQuery('userProfile', () =>
+      client('http://localhost:4444/api/v1/users/me', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
+        },
+      })
+    );
+
+    return {
+      props: { dehydratedState: dehydrate(queryClient) },
+    };
+  } catch (err) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
 };
 
 export default Cryptos;

@@ -80,7 +80,7 @@ export interface I_Crypto {
 }
 
 export interface I_Account {
-  accountWebsite?: string;
+  website?: string;
   name: string;
   teamviewInfo?: string;
   balance: number;
@@ -140,5 +140,36 @@ export interface I_User {
   createdAt: number;
   notes?: string;
   profile: Profile;
+  _id: string;
+}
+
+export interface I_Giftcard {
+  createdAt: number;
+  updatedAt?: number;
+  notes?: string;
+  price: MoneyType;
+  fee: MoneyType;
+  value: number;
+  website: string;
+  discountRate?: number;
+  remainingBalance?: number;
+  btcUsdRate: number;
+  usdVndRate: number;
+  transaction?: string;
+  fromAccount: string;
+  toAccount: string;
+  _id: string;
+}
+
+export interface I_Warehouse {
+  name: string;
+  address1: string;
+  address2?: string;
+  city: string;
+  state: string;
+  zipcode: string;
+  phone?: string;
+  customId: string;
+  notes?: string;
   _id: string;
 }

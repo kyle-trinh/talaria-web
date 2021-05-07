@@ -38,12 +38,21 @@ import {
   GIFT_CARD_DEFAULT,
   USER_MAP,
 } from '../../constants';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  QueryClient,
+} from 'react-query';
 import { client } from '../../utils/api-client';
 import { Sort } from '../../components/Options';
 import ContentHeader from '../../components/ContentHeader';
 import Link from 'next/link';
-import ExternalLink from '../../components/ExternalLink';
+import { GetServerSideProps, GetServerSidePropsContext } from 'next';
+import { dehydrate } from 'react-query/hydration';
+import { useMe } from '../../hooks/useMe';
+import { I_Warehouse } from '../../types';
+
 const layout = Array.from({ length: 8 });
 
 const LoadingLayout = () => (
@@ -72,6 +81,7 @@ const Cryptos = () => {
   const [limit] = useState(8);
   const [filter, setFilter] = useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const {
     isOpen: isOpen2,
     onOpen: onOpen2,
@@ -129,7 +139,12 @@ const Cryptos = () => {
   return (
     <>
       <Header title='Warehouses' />
-      <ContentHeader title='Warehouses' />
+      <ContentHeader
+        title='Warehouses'
+        user={user}
+        isLoading={isUserLoading}
+        status={userStatus}
+      />
       <Box
         gridArea='main'
         bg='white'
@@ -169,9 +184,6 @@ const Cryptos = () => {
                 <Thead>
                   <Tr>
                     <Th textTransform='capitalize' bg='gray.300'>
-                      Id
-                    </Th>
-                    <Th textTransform='capitalize' bg='gray.300'>
                       Name
                     </Th>
                     <Th textTransform='capitalize' bg='gray.300'>
@@ -204,17 +216,8 @@ const Cryptos = () => {
                     <span>{(error as Error).message}</span>
                   ) : (
                     <>
-                      {data.data.data.map((single) => (
+                      {data.data.data.map((single: I_Warehouse) => (
                         <Tr key={single._id}>
-                          <Td>
-                            <Tooltip label={single._id} aria-label='Tooltop'>
-                              <span>
-                                <Link href={`/warehouses/${single._id}`}>
-                                  {single._id.slice(0, 16) + '...'}
-                                </Link>
-                              </span>
-                            </Tooltip>
-                          </Td>
                           <Td>{single.name}</Td>
                           <Td>{single.address1}</Td>
 
@@ -223,7 +226,14 @@ const Cryptos = () => {
                           <Td>{single.state}</Td>
 
                           <Td>{single.phone}</Td>
-                          <Td>{single.notes ? single.notes : '-'}</Td>
+                          <Td>
+                            <Tooltip
+                              label={single.notes || '-'}
+                              aria-label='A tooltip'
+                            >
+                              <span>{single.notes?.slice(0, 30) || '-'}</span>
+                            </Tooltip>
+                          </Td>
                           <Td>
                             <Menu>
                               <MenuButton
@@ -236,7 +246,7 @@ const Cryptos = () => {
                               />
                               <MenuList>
                                 <Link
-                                  href={`/affiliates/${single._id}/edit`}
+                                  href={`/warehouses/${single._id}/edit`}
                                   passHref
                                 >
                                   <MenuItem>Edit</MenuItem>
@@ -349,6 +359,35 @@ const Cryptos = () => {
       </Box>
     </>
   );
+};
+
+export const getServerSideProps: GetServerSideProps = async function ({
+  req,
+  res,
+}: GetServerSidePropsContext) {
+  const queryClient = new QueryClient();
+  try {
+    await queryClient.fetchQuery('userProfile', () =>
+      client('http://localhost:4444/api/v1/users/me', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
+        },
+      })
+    );
+
+    return {
+      props: { dehydratedState: dehydrate(queryClient) },
+    };
+  } catch (err) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
 };
 
 export default Cryptos;

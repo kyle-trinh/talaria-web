@@ -420,7 +420,6 @@ const CRYPTO_FIELD_MAP = {
 };
 
 const GIFT_CARD_FIELDS = [
-  '_id',
   'createdAt',
   'updatedAt',
   'price',
@@ -438,7 +437,6 @@ const GIFT_CARD_FIELDS = [
 ];
 
 const GIFT_CARD_DEFAULT = [
-  '_id',
   'createdAt',
   'price',
   'fee',

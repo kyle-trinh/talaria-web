@@ -303,7 +303,7 @@ function UserRow({ single, reloadPage }) {
       <Td>
         <Tooltip label={single._id} aria-label='Tooltop'>
           <span>
-            <Link href={`/affiliates/${single._id}`}>
+            <Link href={`/users/${single._id}`}>
               {single._id.slice(0, 16) + '...'}
             </Link>
           </span>
@@ -346,7 +346,7 @@ function UserRow({ single, reloadPage }) {
             borderRadius='50%'
           />
           <MenuList>
-            <Link href={`/affiliates/${single._id}/edit`} passHref>
+            <Link href={`/users/${single._id}/edit`} passHref>
               <MenuItem>Edit</MenuItem>
             </Link>
 
