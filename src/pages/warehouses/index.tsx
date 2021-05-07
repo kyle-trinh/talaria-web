@@ -27,6 +27,7 @@ import {
   Alert,
   AlertIcon,
   AlertTitle,
+  Tag,
 } from '@chakra-ui/react';
 import React, { useState, useRef } from 'react';
 import { RiMoreFill } from 'react-icons/ri';
@@ -202,6 +203,9 @@ const Cryptos = () => {
                       Phone Number
                     </Th>
                     <Th textTransform='capitalize' bg='gray.300'>
+                      Delivered To
+                    </Th>
+                    <Th textTransform='capitalize' bg='gray.300'>
                       Notes
                     </Th>
                     <Th textTransform='capitalize' bg='gray.300'>
@@ -226,6 +230,19 @@ const Cryptos = () => {
                           <Td>{single.state}</Td>
 
                           <Td>{single.phone}</Td>
+                          <Td>
+                            <Tag
+                              colorScheme={
+                                single.deliveredTo === 'ha noi'
+                                  ? 'teal'
+                                  : 'yellow'
+                              }
+                              variant='outline'
+                              textTransform='capitalize'
+                            >
+                              {single.deliveredTo}
+                            </Tag>
+                          </Td>
                           <Td>
                             <Tooltip
                               label={single.notes || '-'}

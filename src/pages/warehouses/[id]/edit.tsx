@@ -8,14 +8,18 @@ import {
   AlertTitle,
   Box,
   Button,
+  FormControl,
+  FormLabel,
   Grid,
+  HStack,
+  Select,
 } from '@chakra-ui/react';
-import { Formik, Form } from 'formik';
+import { Formik, Form, Field, FieldInputProps } from 'formik';
 import { InputField } from '../../../components/InputField';
 import { client } from '../../../utils/api-client';
 import { QueryClient, useMutation, useQuery } from 'react-query';
 import { BASE_URL } from '../../../constants';
-import { useRouter } from 'next/router';
+import { Router, useRouter } from 'next/router';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { dehydrate } from 'react-query/hydration';
 import { useMe } from '../../../hooks/useMe';
@@ -30,6 +34,7 @@ interface I_FormData {
   zipcode: string;
   phone: string;
   notes?: string;
+  deliveredTo: string;
 }
 
 export default function NewCrypto({ id }) {
@@ -94,6 +99,7 @@ export default function NewCrypto({ id }) {
                   zipcode: warehouse.zipcode,
                   phone: warehouse.phone || '',
                   notes: warehouse.notes || '',
+                  deliveredTo: warehouse.deliveredTo,
                 }}
                 onSubmit={(values: I_FormData) => {
                   mutate(values);
@@ -170,6 +176,20 @@ export default function NewCrypto({ id }) {
                         placeholder='Phone'
                         label='Phone'
                       />
+                      <Field name='deliveredTo'>
+                        {({ field }: { field: FieldInputProps<any> }) => (
+                          <FormControl>
+                            <FormLabel htmlFor='delivetedTo'>
+                              Deliver to
+                            </FormLabel>
+                            <Select {...field} id='deliveredTo'>
+                              <option value=''>Select</option>
+                              <option value='ha noi'>TP. Hanoi</option>
+                              <option value='ho chi minh'>TP. HCM</option>
+                            </Select>
+                          </FormControl>
+                        )}
+                      </Field>
                       <InputField
                         type='text'
                         name='notes'
@@ -177,13 +197,16 @@ export default function NewCrypto({ id }) {
                         label='Notes'
                       />
                     </Grid>
-                    <Button
-                      type='submit'
-                      colorScheme='teal'
-                      isLoading={isLoading}
-                    >
-                      Submit
-                    </Button>
+                    <HStack spacing='8px'>
+                      <Button onClick={() => route.back()}>Go back</Button>
+                      <Button
+                        type='submit'
+                        colorScheme='teal'
+                        isLoading={isLoading}
+                      >
+                        Submit
+                      </Button>
+                    </HStack>
                   </Form>
                 )}
               </Formik>

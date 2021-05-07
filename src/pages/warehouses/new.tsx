@@ -8,9 +8,12 @@ import {
   AlertTitle,
   Box,
   Button,
+  FormControl,
+  FormLabel,
   Grid,
+  Select,
 } from '@chakra-ui/react';
-import { Formik, Form } from 'formik';
+import { Formik, Form, Field, FieldInputProps } from 'formik';
 import { InputField } from '../../components/InputField';
 import { client } from '../../utils/api-client';
 import { QueryClient, useMutation } from 'react-query';
@@ -30,6 +33,7 @@ interface I_FormData {
   zipcode: string;
   phone: string;
   notes?: string;
+  deliveredTo: string;
 }
 
 export default function NewCrypto() {
@@ -77,6 +81,7 @@ export default function NewCrypto() {
               zipcode: '',
               phone: '',
               notes: '',
+              deliveredTo: 'ha noi',
             }}
             onSubmit={(values: I_FormData) => {
               mutate(values);
@@ -151,6 +156,18 @@ export default function NewCrypto() {
                     placeholder='Phone'
                     label='Phone'
                   />
+                  <Field name='deliveredTo'>
+                    {({ field }: { field: FieldInputProps<any> }) => (
+                      <FormControl>
+                        <FormLabel htmlFor='delivetedTo'>Deliver to</FormLabel>
+                        <Select {...field} id='deliveredTo'>
+                          <option value=''>Select</option>
+                          <option value='ha noi'>TP. Hanoi</option>
+                          <option value='ho chi minh'>TP. HCM</option>
+                        </Select>
+                      </FormControl>
+                    )}
+                  </Field>
                   <InputField
                     type='text'
                     name='notes'

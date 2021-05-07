@@ -172,4 +172,5 @@ export interface I_Warehouse {
   customId: string;
   notes?: string;
   _id: string;
+  deliveredTo: string;
 }
