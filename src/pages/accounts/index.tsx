@@ -39,6 +39,7 @@ import { Sort } from '../../components/Options';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { dehydrate } from 'react-query/hydration';
 import { useMe } from '../../hooks/useMe';
+import { I_Account } from '../../types';
 
 export default function AccountPage() {
   const [sort, setSort] = useState('_id:desc');
@@ -118,7 +119,7 @@ export default function AccountPage() {
                           textTransform='capitalize'
                           bg='gray.300'
                         >
-                          {ACCOUNT_FIELD_MAP[field].full}
+                          {ACCOUNT_FIELD_MAP[field as keyof I_Account].full}
                         </Th>
                       );
                     })}
@@ -134,7 +135,7 @@ export default function AccountPage() {
                     <span>{(error as Error).message}</span>
                   ) : (
                     <>
-                      {data.data.data.map((single) => (
+                      {data.data.data.map((single: I_Account) => (
                         <AcctRow
                           single={single}
                           key={single._id}
@@ -179,7 +180,13 @@ export default function AccountPage() {
   );
 }
 
-function AcctRow({ single, reloadPage }) {
+function AcctRow({
+  single,
+  reloadPage,
+}: {
+  single: I_Account;
+  reloadPage: () => void;
+}) {
   const {
     isOpen: isOpen2,
     onOpen: onOpen2,
@@ -207,11 +214,11 @@ function AcctRow({ single, reloadPage }) {
   );
   return (
     <Tr key={single._id}>
-      {ACCOUNT_FIELDS.map((field, index) => {
+      {ACCOUNT_FIELDS.map((field: string, index: number) => {
         const [output, fullStr] = truncate(
-          single[field],
+          single[field as keyof I_Account],
           16,
-          ACCOUNT_FIELD_MAP[field].type
+          ACCOUNT_FIELD_MAP[field as keyof I_Account].type
         );
         return (
           <Td key={index}>

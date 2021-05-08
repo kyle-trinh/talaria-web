@@ -39,7 +39,7 @@ import {
 import { InputField } from '../../../components/InputField';
 import { client } from '../../../utils/api-client';
 import { useMutation, useQuery, QueryClient } from 'react-query';
-import { BASE_URL, I_Item } from '../../../constants';
+import { BASE_URL } from '../../../constants';
 import { useRouter } from 'next/router';
 import { BiCheckCircle } from 'react-icons/bi';
 import NextLink from 'next/link';
@@ -48,7 +48,7 @@ import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { dehydrate } from 'react-query/hydration';
 import { useMe } from '../../../hooks/useMe';
 import { removeBlankField } from '../../../utils';
-import { I_Bill } from '../../../types';
+import { MoneyType } from '../../../types';
 import { AiOutlineClose } from 'react-icons/ai';
 
 interface Item_Interface {
@@ -81,6 +81,16 @@ interface I_Item_Form {
   commissionRate?: number | string;
   extraShippingCost?: number | string;
   notes?: string;
+}
+
+export interface I_Bill_Form {
+  usdVndRate: number;
+  shippingRateToVn: MoneyType;
+  customTax?: number;
+  notes?: string;
+  customer: string;
+  items: string[];
+  affiliate: string;
 }
 
 export default function EditBill({ id }: { id: string }) {
@@ -144,7 +154,7 @@ export default function EditBill({ id }: { id: string }) {
     error: billError,
     isSuccess: isBillSuccess,
   } = useMutation(
-    (data: I_Bill) =>
+    (data: I_Bill_Form) =>
       client(`${BASE_URL}/bills/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(removeBlankField(data)),

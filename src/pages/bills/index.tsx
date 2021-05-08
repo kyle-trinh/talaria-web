@@ -64,20 +64,19 @@ import { client } from '../../utils/api-client';
 import { Sort } from '../../components/Options';
 import ContentHeader from '../../components/ContentHeader';
 import NextLink from 'next/link';
-import ExternalLink from '../../components/ExternalLink';
-import { Field, FieldArray, Form, Formik } from 'formik';
-import { InputField } from '../../components/InputField';
+import { Field, FieldInputProps } from 'formik';
 import BillRow from '../../components/BillRow';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { useMe } from '../../hooks/useMe';
 import Filter from '../../components/Options/Filter';
+import { I_Bill } from '../../types';
 const layout = Array.from({ length: 8 });
 
 const LoadingLayout = () => (
   <>
     {layout.map((_item, i) => (
       <Tr height='57px' key={i}>
-        {ITEM_DEFAULT.map((field, index) => {
+        {ITEM_DEFAULT.map((_field, index) => {
           return (
             <Td key={index}>
               <Skeleton height='16px' />
@@ -148,7 +147,7 @@ const Cryptos = () => {
               defaultHeight='200px'
             >
               <Field name='status'>
-                {({ field }) => (
+                {({ field }: { field: FieldInputProps<any> }) => (
                   <FormControl>
                     <FormLabel htmlFor='status'>Status</FormLabel>
                     <Select id='status' {...field}>
@@ -222,7 +221,7 @@ const Cryptos = () => {
                           <Td>No bill available</Td>
                         </Tr>
                       )}
-                      {data.data.data.map((single) => (
+                      {data.data.data.map((single: I_Bill) => (
                         <BillRow
                           reloadPage={reloadPage}
                           key={single._id}

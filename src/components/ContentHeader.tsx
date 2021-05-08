@@ -1,17 +1,10 @@
 import {
   Box,
-  Icon,
   Image,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
-  MenuItemOption,
-  MenuGroup,
-  MenuOptionGroup,
-  MenuIcon,
-  MenuCommand,
-  MenuDivider,
   SkeletonCircle,
 } from '@chakra-ui/react';
 import React from 'react';
@@ -19,9 +12,8 @@ import { HiOutlineViewGrid } from 'react-icons/hi';
 import { RiLogoutBoxRLine } from 'react-icons/ri';
 import NextLink from 'next/link';
 import { client } from '../utils/api-client';
-import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useMutation, useQueryClient } from 'react-query';
 import { BASE_URL } from '../constants';
-import items from '../pages/items';
 import { useRouter } from 'next/router';
 
 interface Props {

@@ -107,7 +107,7 @@ const Profile = () => {
               hidden
               ref={inputRef}
               onChange={(e) => {
-                if (e.target.files.length >= 1) {
+                if (e.target.files && e.target.files.length >= 1) {
                   const image = e.target.files[0];
                   const formData = new FormData();
                   formData.append('image', image, image.name);
@@ -118,7 +118,7 @@ const Profile = () => {
               }}
             />
             <Icon
-              onClick={() => inputRef.current.click()}
+              onClick={() => inputRef.current!.click()}
               as={RiEditFill}
               cursor='pointer'
               w={8}
@@ -191,7 +191,7 @@ const Profile = () => {
                             <Text>N/A</Text>
                           )}
                           <List>
-                            {user.profile.socialMedias.map((social) => (
+                            {user.profile.socialMedias.map((social: any) => (
                               <ExternalLink
                                 href={`http://${social.link}`}
                                 key={social._id}
@@ -225,16 +225,21 @@ const Profile = () => {
                             <Text>N/A</Text>
                           )}
                           <List>
-                            {user.profile.phoneNumbers.map((number, index) => (
-                              <ExternalLink href={`tel:${number}`} key={index}>
-                                <ListItem>
-                                  {number}{' '}
-                                  {index ===
-                                    user.profile.phoneNumbers.length - 1 &&
-                                    ' - Newest'}
-                                </ListItem>
-                              </ExternalLink>
-                            ))}
+                            {user.profile.phoneNumbers.map(
+                              (number: string, index: number) => (
+                                <ExternalLink
+                                  href={`tel:${number}`}
+                                  key={index}
+                                >
+                                  <ListItem>
+                                    {number}{' '}
+                                    {index ===
+                                      user.profile.phoneNumbers.length - 1 &&
+                                      ' - Newest'}
+                                  </ListItem>
+                                </ExternalLink>
+                              )
+                            )}
                           </List>
                         </PopoverBody>
                       </PopoverContent>
@@ -264,7 +269,7 @@ const Profile = () => {
                               justifyContent='center'
                               alignItems='flex-start'
                             >
-                              {user.profile.commissionRates.map((rate) => (
+                              {user.profile.commissionRates.map((rate: any) => (
                                 <ListItem key={rate._id}>
                                   <Tag
                                     colorScheme='teal'
@@ -311,7 +316,7 @@ const Profile = () => {
                               alignItems='flex-start'
                               justifyContent='center'
                             >
-                              {user.profile.discountRates.map((rate) => (
+                              {user.profile.discountRates.map((rate: any) => (
                                 <ListItem key={rate._id}>
                                   <Tag
                                     colorScheme='teal'
@@ -354,7 +359,7 @@ const Profile = () => {
                         <PopoverBody>
                           {user.profile.bankAccts.length === 0 && 'N/A'}
                           <List>
-                            {user.profile.bankAccts.map((acct) => (
+                            {user.profile.bankAccts.map((acct: any) => (
                               <ListItem key={acct._id}>
                                 {acct.bankName} - {acct?.bankLocation}:{' '}
                                 {acct.acctNumber}
@@ -384,7 +389,7 @@ const Profile = () => {
                         <PopoverBody>
                           {user.profile.address.length === 0 && 'N/A'}
                           <List>
-                            {user.profile.address.map((single) => (
+                            {user.profile.address.map((single: any) => (
                               <ListItem key={single._id}>
                                 {single.streetAddr}, {single.city}
                               </ListItem>
@@ -404,7 +409,7 @@ const Profile = () => {
   );
 };
 
-function Title({ text, ...props }) {
+function Title({ text, ...props }: { text: string }) {
   return (
     <Text fontWeight='bold' color='gray.400' {...props}>
       {text}

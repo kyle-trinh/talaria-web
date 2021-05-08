@@ -108,7 +108,7 @@ export default function NewUser({ id }: { id: string }) {
         setPhoneNumbers(data.data.data.profile.phoneNumbers || []);
         setBankAccts(data.data.data.profile.bankAccts || []);
         setCommissionRates(
-          data.data.data.profile.commissionRates.map((rate) => {
+          data.data.data.profile.commissionRates.map((rate: any) => {
             const newObj = { ...rate };
             newObj.rate = newObj.rate['$numberDecimal'];
             return newObj;
@@ -116,7 +116,7 @@ export default function NewUser({ id }: { id: string }) {
         );
         setAddress(data.data.data.profile.address || []);
         setDiscountRates(
-          data.data.data.profile.discountRates.map((rate) => {
+          data.data.data.profile.discountRates.map((rate: any) => {
             const newObj = { ...rate };
             newObj.rate = newObj.rate['$numberDecimal'];
             return newObj;
@@ -813,7 +813,7 @@ export const getServerSideProps: GetServerSideProps = async function ({
     );
 
     return {
-      props: { dehydratedState: dehydrate(queryClient), id: params.id },
+      props: { dehydratedState: dehydrate(queryClient), id: params!.id },
     };
   } catch (err) {
     return {

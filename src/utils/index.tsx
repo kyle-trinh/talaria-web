@@ -2,7 +2,7 @@ import ExternalLink from '../components/ExternalLink';
 import Link from 'next/link';
 import { Tag } from '@chakra-ui/react';
 
-function truncate(str: string, num: number, type: string, page?: string) {
+function truncate(str: any, num: number, type: string, page?: string) {
   if (str) {
     if (type === 'string') {
       return [str.length >= num ? `${str.slice(0, num)}...` : str, str];
@@ -29,7 +29,7 @@ function truncate(str: string, num: number, type: string, page?: string) {
   return ['-', '-'];
 }
 
-export function removeBlankField(obj: object) {
+export function removeBlankField(obj: any) {
   const copy = { ...obj };
   for (const [key, value] of Object.entries(copy)) {
     if (!value) {

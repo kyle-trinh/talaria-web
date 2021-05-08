@@ -39,7 +39,7 @@ import {
 import { InputField } from '../../components/InputField';
 import { client } from '../../utils/api-client';
 import { useMutation, useQuery, QueryClient } from 'react-query';
-import { BASE_URL, I_Item } from '../../constants';
+import { BASE_URL } from '../../constants';
 import { useRouter } from 'next/router';
 import { BiCheckCircle } from 'react-icons/bi';
 import NextLink from 'next/link';
@@ -48,7 +48,7 @@ import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { dehydrate } from 'react-query/hydration';
 import { useMe } from '../../hooks/useMe';
 import { removeBlankField } from '../../utils';
-import { I_Bill } from '../../types';
+import { MoneyType } from '../../types';
 import { AiOutlineClose } from 'react-icons/ai';
 
 interface Item_Interface {
@@ -67,6 +67,16 @@ interface I_User_Br {
   firstName: string;
   lastName?: string;
   role: string;
+}
+
+export interface I_Bill_Form {
+  usdVndRate: number;
+  shippingRateToVn: MoneyType;
+  customTax?: number;
+  notes?: string;
+  customer: string;
+  items: string[];
+  affiliate: string;
 }
 
 interface I_Item_Form {
@@ -131,7 +141,7 @@ export default function NewBill() {
     error: billError,
     isSuccess: isBillSuccess,
   } = useMutation(
-    (data: I_Bill) =>
+    (data: I_Bill_Form) =>
       client(`${BASE_URL}/bills`, {
         method: 'POST',
         body: JSON.stringify(removeBlankField(data)),

@@ -57,8 +57,9 @@ import { dehydrate } from 'react-query/hydration';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { useMe } from '../../hooks/useMe';
 import Filter from '../../components/Options/Filter';
-import { Field } from 'formik';
+import { Field, FieldInputProps } from 'formik';
 import { renderDate } from '../../utils';
+import { I_User } from '../../types';
 const layout = Array.from({ length: 8 });
 
 const LoadingLayout = () => (
@@ -136,7 +137,7 @@ const Cryptos = () => {
             >
               <VStack spacing='8px'>
                 <Field name='role'>
-                  {({ field, form }) => (
+                  {({ field }: { field: FieldInputProps<any> }) => (
                     <FormControl>
                       <FormLabel htmlFor='role'>Role</FormLabel>
                       <Select id='role' {...field}>
@@ -205,7 +206,7 @@ const Cryptos = () => {
                     <span>{(error as Error).message}</span>
                   ) : (
                     <>
-                      {data.data.data.map((single) => (
+                      {data.data.data.map((single: I_User) => (
                         <UserRow
                           single={single}
                           key={single._id}
@@ -267,7 +268,13 @@ const Cryptos = () => {
   );
 };
 
-function UserRow({ single, reloadPage }) {
+function UserRow({
+  single,
+  reloadPage,
+}: {
+  single: I_User;
+  reloadPage: () => void;
+}) {
   const {
     isOpen: isOpen2,
     onOpen: onOpen2,
@@ -280,7 +287,7 @@ function UserRow({ single, reloadPage }) {
     isLoading: isDeleteLoading,
     reset: resetDelete,
   } = useMutation(
-    (data) =>
+    (data: string) =>
       client(`${BASE_URL}/users/${data}`, {
         method: 'DELETE',
         credentials: 'include',
@@ -297,12 +304,14 @@ function UserRow({ single, reloadPage }) {
       <Td>{single.createdAt}</Td>
       <Td>{`${single.firstName} ${single?.lastName}`}</Td>
       <Td>
-        {single.profile.phoneNumbers.length > 0
+        {single.profile.phoneNumbers && single.profile.phoneNumbers.length > 0
           ? single.profile.phoneNumbers[0]
           : '-'}
       </Td>
       <Td>{single.email}</Td>
-      <Td>{single.profile.dob ? renderDate(single.profile.dob) : '-'}</Td>
+      <Td>
+        {single.profile.dob ? renderDate(single.profile.dob.toString()) : '-'}
+      </Td>
       <Td>
         <Tag
           variant='outline'

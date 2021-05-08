@@ -50,7 +50,6 @@ import { truncate } from '../../utils/index';
 import { FreezeCol, Sort, LimitField } from '../../components/Options';
 import { TableCeil } from '../../components/styles/Table';
 import ContentHeader from '../../components/ContentHeader';
-import Link from 'next/link';
 import { I_Crypto } from '../../types';
 import { useMe } from '../../hooks/useMe';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';

@@ -81,7 +81,6 @@ const Cryptos = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
   const [filter, setFilter] = useState('');
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const {
     isOpen: isOpen2,
@@ -118,7 +117,7 @@ const Cryptos = () => {
     isLoading: isDeleteLoading,
     reset: resetDelete,
   } = useMutation(
-    (data) =>
+    (data: string) =>
       client(`${BASE_URL}/warehouses/${data}`, {
         method: 'DELETE',
         credentials: 'include',

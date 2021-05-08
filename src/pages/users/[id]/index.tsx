@@ -62,9 +62,9 @@ import { Form, Formik } from 'formik';
 import { InputField } from '../../../components/InputField';
 import { BiCheckCircle } from 'react-icons/bi';
 import { renderDate } from '../../../utils';
+import { I_Bill, I_Commission } from '../../../types';
 
-export default function AffiliateDetail({ id }) {
-  const router = useRouter();
+export default function AffiliateDetail({ id }: { id: string }) {
   const { user, isLoading, status } = useMe();
 
   const queryClient = useQueryClient();
@@ -102,7 +102,7 @@ export default function AffiliateDetail({ id }) {
     }
   );
 
-  const isPayable = (arr) => {
+  const isPayable = (arr: any[]) => {
     for (const item of arr) {
       if (item.status !== 'paid') {
         return true;
@@ -219,7 +219,7 @@ export default function AffiliateDetail({ id }) {
                               )}
                               <List>
                                 {affiliate.profile.socialMedias.map(
-                                  (social) => (
+                                  (social: { link: string; _id: string }) => (
                                     <ExternalLink
                                       href={`http://${social.link}`}
                                       key={social._id}
@@ -255,7 +255,7 @@ export default function AffiliateDetail({ id }) {
                               )}
                               <List>
                                 {affiliate.profile.phoneNumbers.map(
-                                  (number, index) => (
+                                  (number: string, index: number) => (
                                     <ExternalLink
                                       href={`tel:${number}`}
                                       key={index}
@@ -301,7 +301,11 @@ export default function AffiliateDetail({ id }) {
                                     alignItems='flex-start'
                                   >
                                     {affiliate.profile.commissionRates.map(
-                                      (rate) => (
+                                      (rate: {
+                                        _id: string;
+                                        website: string;
+                                        rate: any;
+                                      }) => (
                                         <ListItem key={rate._id}>
                                           <Tag
                                             colorScheme='teal'
@@ -351,7 +355,11 @@ export default function AffiliateDetail({ id }) {
                                   justifyContent='center'
                                 >
                                   {affiliate.profile.discountRates.map(
-                                    (rate) => (
+                                    (rate: {
+                                      _id: string;
+                                      website: string;
+                                      rate: any;
+                                    }) => (
                                       <ListItem key={rate._id}>
                                         <Tag
                                           colorScheme='teal'
@@ -396,12 +404,19 @@ export default function AffiliateDetail({ id }) {
                               {affiliate.profile.bankAccts.length === 0 &&
                                 'N/A'}
                               <List>
-                                {affiliate.profile.bankAccts.map((acct) => (
-                                  <ListItem key={acct._id}>
-                                    {acct.bankName} - {acct?.bankLocation}:{' '}
-                                    {acct.acctNumber}
-                                  </ListItem>
-                                ))}
+                                {affiliate.profile.bankAccts.map(
+                                  (acct: {
+                                    _id: string;
+                                    bankName: string;
+                                    bankLocation: string;
+                                    acctNumber: string;
+                                  }) => (
+                                    <ListItem key={acct._id}>
+                                      {acct.bankName} - {acct?.bankLocation}:{' '}
+                                      {acct.acctNumber}
+                                    </ListItem>
+                                  )
+                                )}
                               </List>
                             </PopoverBody>
                           </PopoverContent>
@@ -426,11 +441,17 @@ export default function AffiliateDetail({ id }) {
                             <PopoverBody>
                               {affiliate.profile.address.length === 0 && 'N/A'}
                               <List>
-                                {affiliate.profile.address.map((single) => (
-                                  <ListItem key={single._id}>
-                                    {single.streetAddr}, {single.city}
-                                  </ListItem>
-                                ))}
+                                {affiliate.profile.address.map(
+                                  (single: {
+                                    _id: string;
+                                    streetAddr: string;
+                                    city: string;
+                                  }) => (
+                                    <ListItem key={single._id}>
+                                      {single.streetAddr}, {single.city}
+                                    </ListItem>
+                                  )
+                                )}
                               </List>
                             </PopoverBody>
                           </PopoverContent>
@@ -505,13 +526,15 @@ export default function AffiliateDetail({ id }) {
                             <Td>No commissions yet!</Td>
                           </Tr>
                         )}
-                        {dataCommission.data.data.map((commission) => (
-                          <CommissionRow
-                            key={commission._id}
-                            commission={commission}
-                            currentTime={currentTime}
-                          />
-                        ))}
+                        {dataCommission.data.data.map(
+                          (commission: I_Commission & { bill: I_Bill }) => (
+                            <CommissionRow
+                              key={commission._id}
+                              commission={commission}
+                              currentTime={currentTime}
+                            />
+                          )
+                        )}
                       </Tbody>
                     </Table>
                     <Center mb='32px'>
@@ -537,7 +560,7 @@ export default function AffiliateDetail({ id }) {
   );
 }
 
-function Bills({ id }) {
+function Bills({ id }: { id: string }) {
   const [page, setPage] = React.useState(1);
   const [limit] = React.useState(8);
   const { data, status, error } = useQuery(['bills', id, page, limit], () =>
@@ -613,7 +636,7 @@ function Bills({ id }) {
                     <Td>No bills existed</Td>
                   </Tr>
                 )}
-                {data.data.data.map((bill) => (
+                {data.data.data.map((bill: I_Bill) => (
                   <BillRow key={bill._id} bill={bill} />
                 ))}
               </Tbody>
@@ -625,7 +648,7 @@ function Bills({ id }) {
   );
 }
 
-function BillRow({ bill }) {
+function BillRow({ bill }: { bill: I_Bill }) {
   return (
     <Tr>
       <Td>
@@ -686,12 +709,18 @@ function BillRow({ bill }) {
   );
 }
 
-function CommissionRow({ commission, currentTime }) {
+function CommissionRow({
+  commission,
+  currentTime,
+}: {
+  commission: I_Commission & { bill: I_Bill };
+  currentTime: string;
+}) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { mutate, isLoading, status } = useMutation(
-    (data) =>
+    (data: { amount: number }) =>
       client(`${BASE_URL}/commissions/${commission._id}/pay`, {
         method: 'PATCH',
         body: JSON.stringify(data),
@@ -749,7 +778,7 @@ function CommissionRow({ commission, currentTime }) {
           <Formik
             initialValues={{
               amount: parseFloat(
-                commission.amount.slice(1).split(',').join('')
+                commission.amount.toString().slice(1).split(',').join('')
               ),
             }}
             onSubmit={(value) => {
@@ -788,7 +817,7 @@ function CommissionRow({ commission, currentTime }) {
   );
 }
 
-function Title({ text, ...props }) {
+function Title({ text, ...props }: { text: string }) {
   return (
     <Text fontWeight='bold' color='gray.400' {...props}>
       {text}
@@ -814,7 +843,7 @@ export const getServerSideProps: GetServerSideProps = async function ({
     );
 
     return {
-      props: { dehydratedState: dehydrate(queryClient), id: params.id },
+      props: { dehydratedState: dehydrate(queryClient), id: params!.id },
     };
   } catch (err) {
     return {

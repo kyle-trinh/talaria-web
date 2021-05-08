@@ -1,4 +1,11 @@
-import { Button, Box, Alert, AlertIcon, AlertTitle } from '@chakra-ui/react';
+import {
+  Button,
+  Box,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  VStack,
+} from '@chakra-ui/react';
 import { useMutation, QueryClient } from 'react-query';
 import { useRouter } from 'next/router';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
@@ -54,20 +61,20 @@ const Login = () => {
                 <AlertTitle mr={2}>Login successful! Redirecting...</AlertTitle>
               </Alert>
             ) : null}
-            <InputField
-              name='email'
-              placeholder='Email'
-              label='Email'
-              type='email'
-              mb={5}
-            />
-            <InputField
-              name='password'
-              placeholder='Password'
-              label='Password'
-              type='password'
-              mb={5}
-            />
+            <VStack spacing='8px'>
+              <InputField
+                name='email'
+                placeholder='Email'
+                label='Email'
+                type='email'
+              />
+              <InputField
+                name='password'
+                placeholder='Password'
+                label='Password'
+                type='password'
+              />
+            </VStack>
             <Button
               colorScheme='teal'
               type='submit'

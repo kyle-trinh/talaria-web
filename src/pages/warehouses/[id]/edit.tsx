@@ -37,7 +37,7 @@ interface I_FormData {
   deliveredTo: string;
 }
 
-export default function NewCrypto({ id }) {
+export default function NewCrypto({ id }: { id: string }) {
   const route = useRouter();
   const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
@@ -236,7 +236,7 @@ export const getServerSideProps: GetServerSideProps = async function ({
     );
 
     return {
-      props: { dehydratedState: dehydrate(queryClient), id: params.id },
+      props: { dehydratedState: dehydrate(queryClient), id: params!.id },
     };
   } catch (err) {
     return {

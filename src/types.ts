@@ -55,9 +55,9 @@ export interface I_Bill {
   commission?: number;
   paymentReceipt?: string;
   notes?: string;
-  customer: string;
-  items: string[];
-  affiliate: string;
+  customer: string & I_User;
+  items: I_Item[] & string[];
+  affiliate: string & I_User;
   afterDiscount?: number;
   totalEstimatedWeight?: number;
 }
@@ -82,16 +82,12 @@ export interface I_Crypto {
 export interface I_Account {
   website?: string;
   name: string;
-  teamviewInfo?: string;
   balance: number;
   currency: string;
   createdAt: number;
-  updatedAt: number;
-  owned: boolean;
   notes?: string;
   status: string;
   _id: string;
-  customId?: string;
 }
 interface SocialMedia {
   website: string;
@@ -173,4 +169,14 @@ export interface I_Warehouse {
   notes?: string;
   _id: string;
   deliveredTo: string;
+}
+
+export interface I_Commission {
+  _id: string;
+  createdAt: number;
+  updatedAt?: number;
+  bill: string;
+  affiliate: string;
+  amount: number;
+  status: string;
 }

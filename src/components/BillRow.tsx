@@ -39,16 +39,19 @@ import NextLink from 'next/link';
 import { RiMoreFill } from 'react-icons/ri';
 import { Form, Formik } from 'formik';
 import { InputField } from './InputField';
-import { useMutation, useQueryClient } from 'react-query';
+import { useMutation } from 'react-query';
 import { client } from '../utils/api-client';
 import { BASE_URL } from '../constants';
+import { I_Bill } from '../types';
 
-export default function BillRow({ single, reloadPage }) {
+interface I_Bill_Row {
+  single: I_Bill;
+  reloadPage: () => void;
+}
+
+export default function BillRow({ single, reloadPage }: I_Bill_Row) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [fuckyou, setFuckyou] = React.useState('qwe');
-  const initialRef = React.useRef();
-  const queryClient = useQueryClient();
-  const currentItem = React.useRef();
+  const currentItem = React.useRef<string>();
   const {
     isOpen: isOpen2,
     onOpen: onOpen2,
@@ -62,7 +65,7 @@ export default function BillRow({ single, reloadPage }) {
     isLoading: isPayLoading,
     reset: payReset,
   } = useMutation(
-    (data: { amount: number }) =>
+    (data: { amount: number | string }) =>
       client(`${BASE_URL}/bills/${currentItem.current}/pay`, {
         method: 'PATCH',
         body: JSON.stringify(data),
@@ -81,12 +84,10 @@ export default function BillRow({ single, reloadPage }) {
   );
   const {
     mutate: deleteItem,
-    error: deleteError,
-    isError: isDeleteError,
     isLoading: isDeleteLoading,
     reset: resetDelete,
   } = useMutation(
-    (data) =>
+    (data?: string) =>
       client(`${BASE_URL}/bills/${data}`, {
         method: 'DELETE',
         credentials: 'include',
@@ -123,7 +124,7 @@ export default function BillRow({ single, reloadPage }) {
               <PopoverHeader>Item list</PopoverHeader>
               <PopoverBody>
                 <List spacing={3}>
-                  {single.items.map((item, index) => (
+                  {single.items.map((item: any, index: number) => (
                     <NextLink href={`/items/${item._id}`} passHref key={index}>
                       <Link>
                         <ListItem>
@@ -244,12 +245,14 @@ export default function BillRow({ single, reloadPage }) {
               <Formik
                 initialValues={{
                   amount: single.actCharge
-                    ? parseFloat(single.actCharge.slice(1).split(',').join(''))
+                    ? parseFloat(
+                        single.actCharge.toString().slice(1).split(',').join('')
+                      )
                     : '',
                 }}
                 onSubmit={(values) => pay(values)}
               >
-                {(props) => (
+                {() => (
                   <Form>
                     <ModalHeader>Pay</ModalHeader>
                     <ModalBody>
