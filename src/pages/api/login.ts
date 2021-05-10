@@ -25,7 +25,7 @@ export default withSession(async (req: any, res: any) => {
     req.session.set('user', newUser);
     console.log(user);
     console.log('GET USER ', req.session.get('user'));
-    await req.session.save();
+    // await req.session.save();
     console.log('here');
     res.json(newUser);
   } catch (error) {
