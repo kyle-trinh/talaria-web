@@ -8,15 +8,18 @@ export default withSession(async (req: any, res: any) => {
 
   try {
     // we check that the user exists on GitHub and store some data in session
-    const { data } = await client(url, {
-      method: 'POST',
+    // const { data } = await client(url, {
+    //   method: 'POST',
 
-      body: JSON.stringify({ email, password }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    });
+    //   body: JSON.stringify({ email, password }),
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   },
+    //   credentials: 'include',
+    // });
+    const { login } = await client(
+      'https://api.github.com/users/binhthaitrinh'
+    );
     // console.log(login);
     // console.log(avatarUrl);
     // const newuser = { isloggedin: true, ...user };
@@ -25,7 +28,7 @@ export default withSession(async (req: any, res: any) => {
     // console.log('GET USER ', req.session.get('user'));
     // // await req.session.save();
     // console.log('here');
-    res.json(data);
+    res.json({ login });
   } catch (error) {
     const { response: fetchResponse } = error;
     res.status(fetchResponse?.status || 500).json(error.data);
