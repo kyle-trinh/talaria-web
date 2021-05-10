@@ -23,10 +23,10 @@ export default withSession(async (req: any, res: any) => {
     // console.log(avatarUrl);
     const newUser = { isLoggedIn: true, ...user };
     req.session.set('user', newUser);
-    // console.log(user);
-    // console.log('GET USER ', req.session.get('user'));
+    console.log(user);
+    console.log('GET USER ', req.session.get('user'));
     await req.session.save();
-    // console.log('here');
+    console.log('here');
     res.json(newUser);
   } catch (error) {
     const { response: fetchResponse } = error;
