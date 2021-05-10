@@ -28,6 +28,8 @@ export default withSession(async (req: any, res: any) => {
     // console.log('GET USER ', req.session.get('user'));
     // // await req.session.save();
     // console.log('here');
+    req.session.set('user', { username: login });
+    await req.session.save();
     res.json({ login });
   } catch (error) {
     const { response: fetchResponse } = error;
