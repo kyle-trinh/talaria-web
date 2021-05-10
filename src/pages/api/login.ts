@@ -3,11 +3,11 @@ import { client } from '../../utils/api-client';
 import { BASE_URL } from '../../constants';
 
 export default withSession(async (req: any, res: any) => {
+  const { email, password } = await req.body;
   res.status(200).json({
     status: 'success',
-    data: 'qwkejqhwe',
+    data: { email, password },
   });
-  // const { email, password } = await req.body;
   // const url = `${BASE_URL}/users/signin`;
 
   // try {
