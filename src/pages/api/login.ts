@@ -4,38 +4,32 @@ import { BASE_URL } from '../../constants';
 
 export default withSession(async (req: any, res: any) => {
   const { email, password } = await req.body;
-  res.status(200).json({
-    status: 'success',
-    data: { email, password },
-  });
-  // const url = `${BASE_URL}/users/signin`;
+  const url = `${BASE_URL}/users/signin`;
 
-  // try {
-  //   // we check that the user exists on GitHub and store some data in session
-  //   const {
-  //     data: { user },
-  //   } = await client(url, {
-  //     method: 'POST',
+  try {
+    // we check that the user exists on GitHub and store some data in session
+    const { data } = await client(url, {
+      method: 'POST',
 
-  //     body: JSON.stringify({ email, password }),
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //     credentials: 'include',
-  //   });
-  //   // console.log(login);
-  //   // console.log(avatarUrl);
-  //   const newUser = { isLoggedIn: true, ...user };
-  //   req.session.set('user', newUser);
-  //   console.log(user);
-  //   console.log('GET USER ', req.session.get('user'));
-  //   // await req.session.save();
-  //   console.log('here');
-  //   res.json(newUser);
-  // } catch (error) {
-  //   const { response: fetchResponse } = error;
-  //   res.status(fetchResponse?.status || 500).json(error.data);
-  // }
+      body: JSON.stringify({ email, password }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+    // console.log(login);
+    // console.log(avatarUrl);
+    // const newuser = { isloggedin: true, ...user };
+    // req.session.set('user', newUser);
+    // console.log(user);
+    // console.log('GET USER ', req.session.get('user'));
+    // // await req.session.save();
+    // console.log('here');
+    res.json(data);
+  } catch (error) {
+    const { response: fetchResponse } = error;
+    res.status(fetchResponse?.status || 500).json(error.data);
+  }
 });
 
 // export async function fetcher(...args: any[]) {
