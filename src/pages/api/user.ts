@@ -1,17 +1,21 @@
+import { BASE_URL } from '../../constants';
 import { client } from '../../utils/api-client';
 import { withSession } from '../me';
 
 export default withSession(async (req: any, res: any) => {
   console.log(req);
-  const user = client('localhost:4444/api/v1/users/me', {
+  const data = await client(`${BASE_URL}/users/me`, {
     credentials: 'include',
+    headers: {
+      Authorization: `Bearer ${req.session.get('jwt')}`,
+    },
   });
-  console.log(user);
 
   console.log('CALLED HERE');
-  if (user) {
+  if (data) {
     // in a real world application you might read the user id from the session and then do a database request
     // to get more information on the user if needed
+    const user = data.data.data;
     res.json({
       isLoggedIn: true,
       ...user,

@@ -64,6 +64,7 @@ const Profile = ({ user }: { user: any }) => {
       },
     }
   );
+
   return (
     <>
       {/* <pre>{JSON.stringify(userSSR, null, 2)}</pre> */}
@@ -420,7 +421,7 @@ function Title({ text, ...props }: { text: string }) {
 
 export const getServerSideProps: GetServerSideProps = withSession(
   async function ({ req, res }: any) {
-    const user = req.session.get('user');
+    const user = req.session.get('jwt');
     if (!user) {
       return {
         redirect: {

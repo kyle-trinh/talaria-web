@@ -1,6 +1,7 @@
 import { withSession } from '../me';
 import { client } from '../../utils/api-client';
 import { BASE_URL } from '../../constants';
+import Cookies from 'cookies';
 
 export default withSession(async (req: any, res: any) => {
   const { email, password } = await req.body;
@@ -8,7 +9,7 @@ export default withSession(async (req: any, res: any) => {
 
   try {
     // we check that the user exists on GitHub and store some data in session
-    const { data } = await client(url, {
+    const data = await client(url, {
       method: 'POST',
 
       body: JSON.stringify({ email, password }),
@@ -29,7 +30,17 @@ export default withSession(async (req: any, res: any) => {
     // await req.session.save();
     // console.log('here');
     // req.session.set('user', newUser);
-    // await req.session.save();
+    req.session.set('jwt', data.token);
+    req.session.set('user', data.data.user);
+    const cookies = new Cookies(req, res);
+    cookies.set('jwt', data.token, {
+      expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      // // only send cookie on https
+      // // secure: process.env.NODE_ENV === 'production' ? true : false,
+      // secure: true,
+      httpOnly: true,
+    });
+    await req.session.save();
     res.json(data);
   } catch (error) {
     const { response: fetchResponse } = error;
