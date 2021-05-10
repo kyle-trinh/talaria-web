@@ -38,10 +38,10 @@ import { TiSocialFacebookCircular } from 'react-icons/ti';
 import { ImPhone } from 'react-icons/im';
 import { FaAddressCard, FaPercentage } from 'react-icons/fa';
 
-const Profile = () => {
+const Profile = ({ user }) => {
   const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { user, isLoading, status: userStatus } = useMe();
+  const { user: user2, isLoading, status: userStatus } = useMe();
 
   const {
     mutate,
@@ -66,12 +66,13 @@ const Profile = () => {
   );
   return (
     <>
+      {/* <pre>{JSON.stringify(userSSR, null, 2)}</pre> */}
       <Header title='My profile' />
       <ContentHeader
         title='My profile'
         user={user}
-        isLoading={isLoading}
-        status={userStatus}
+        isLoading={false}
+        status='success'
       />
       <Box
         gridArea='main'
@@ -91,17 +92,17 @@ const Profile = () => {
           alignItems='center'
         >
           <Box position='relative' width='250px' mr='32px'>
-            {userStatus === 'loading' || mutateStatus === 'loading' ? (
+            {/* {userStatus === 'loading' || mutateStatus === 'loading' ? (
               <SkeletonCircle w='200px' h='200px' />
-            ) : (
-              <Image
-                objectFit='cover'
-                boxSize='200px'
-                borderRadius='50%'
-                src={`http://localhost:4444/api/v1/users/images/${user.profilePicture}`}
-                fallback={<SkeletonCircle w='200px' h='200px' />}
-              />
-            )}
+            ) : ( */}
+            <Image
+              objectFit='cover'
+              boxSize='200px'
+              borderRadius='50%'
+              src={`http://localhost:4444/api/v1/users/images/${user.profilePicture}`}
+              fallback={<SkeletonCircle w='200px' h='200px' />}
+            />
+            {/* )} */}
             <input
               type='file'
               hidden
@@ -129,7 +130,7 @@ const Profile = () => {
               right={'20px'}
             />
           </Box>
-          {userStatus === 'loading' || mutateStatus === 'loading' ? null : (
+          {mutateStatus === 'loading' ? null : (
             <Box>
               <Text
                 as='h2'
@@ -417,33 +418,56 @@ function Title({ text, ...props }: { text: string }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req, res }: any) {
+    const user = req.session.get('user');
+    if (!user) {
+      return {
+        redirect: {
+          destination: '/login',
+          permanent: false,
         },
-      })
-    );
+      };
+    }
+    return {
+      props: { user: req.session.get('user') },
+    };
+    // const queryClient = new QueryClient();
+    // try {
+    //   await queryClient.fetchQuery('userProfile', () =>
+    //     client('http://localhost:4444/api/v1/users/me', {
+    //       method: 'GET',
+    //       credentials: 'include',
+    //       headers: {
+    //         Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
+    //       },
+    //     })
+    //   );
 
-    return {
-      props: { dehydratedState: dehydrate(queryClient) },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+    //   return {
+    //     props: { dehydratedState: dehydrate(queryClient) },
+    //   };
+    // } catch (err) {
+    //   return {
+    //     redirect: {
+    //       destination: '/login',
+    //       permanent: false,
+    //     },
+    //   };
+    // }
   }
-};
+);
 
 export default Profile;
+
+export function withSession(handler: any) {
+  return withIronSession(handler, {
+    password: '2gyZ3GDw3LHZQKDhPmPDL3sjREVRXPr8',
+    cookieName: 'next.js/examples/with-iron-session',
+    cookieOptions: {
+      // the next line allows to use the session in non-https environments like
+      // Next.js dev mode (http://localhost:3000)
+      secure: false,
+    },
+  });
+}

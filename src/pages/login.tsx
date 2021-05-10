@@ -17,6 +17,8 @@ import { InputField } from '../components/InputField';
 import Link from 'next/link';
 import { IncomingMessage } from 'node:http';
 import cookie from 'cookie';
+import React from 'react';
+import { fetcher } from './api/login';
 
 interface LoginProps {}
 
@@ -24,14 +26,14 @@ const Login = () => {
   const route = useRouter();
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
     (data: { email: string; password: string }) =>
-      client('http://localhost:4444/api/v1/users/signin', {
+      // client('http://localhost:4444/api/v1/users/signin', {
+      fetcher('/api/login', {
         method: 'POST',
         body: JSON.stringify(data),
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        referrer: 'https://talaria-web.vercel.app/',
       }),
     {
       onSuccess: () => {
@@ -70,7 +72,7 @@ const Login = () => {
                 name='email'
                 placeholder='Email'
                 label='Email'
-                type='email'
+                type='text'
               />
               <InputField
                 name='password'
@@ -98,95 +100,92 @@ const Login = () => {
     </Box>
   );
 };
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-}: GetServerSidePropsContext) {
-  try {
-    const queryClient = new QueryClient();
-    const token = parseCookies().jwt;
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: token && `Bearer ${token}`,
-        },
-        referrer: 'https://talaria-web.vercel.app/',
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient) },
-      redirect: {
-        destination: '/profile',
-        permanent: false,
-      },
-    };
-  } catch (err) {
-    return {
-      props: {},
-    };
-  }
-  if (req.cookies?.jwt) {
-    try {
-      const queryClient = new QueryClient();
-      await queryClient.fetchQuery('userProfile', () =>
-        client('http://localhost:4444/api/v1/users/me', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-          },
-          referrer: 'https://talaria-web.vercel.app/',
-        })
-      );
-
-      return {
-        props: { dehydratedState: dehydrate(queryClient) },
-        redirect: {
-          destination: '/profile',
-          permanent: false,
-        },
-      };
-    } catch (err) {
-      return {
-        props: {},
-      };
-    }
-  } else if (req) {
-    try {
-      const queryClient = new QueryClient();
-      const token = parseCookies().jwt;
-      await queryClient.fetchQuery('userProfile', () =>
-        client('http://localhost:4444/api/v1/users/me', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            Authorization: token && `Bearer ${req.cookies.jwt}`,
-          },
-          referrer: 'https://talaria-web.vercel.app/',
-        })
-      );
-
-      return {
-        props: { dehydratedState: dehydrate(queryClient) },
-        redirect: {
-          destination: '/profile',
-          permanent: false,
-        },
-      };
-    } catch (err) {
-      return {
-        props: {},
-      };
-    }
-  } else {
-    return {
-      props: {},
-    };
-  }
-};
+// export const getServerSideProps: GetServerSideProps = async function ({
+//   req,
+//   res,
+// }: GetServerSidePropsContext) {
+//   // try {
+//   //   const queryClient = new QueryClient();
+//   //   const token = parseCookies().jwt;
+//   //   await queryClient.fetchQuery('userProfile', () =>
+//   //     client('http://localhost:4444/api/v1/users/me', {
+//   //       method: 'GET',
+//   //       credentials: 'include',
+//   //       headers: {
+//   //         Authorization: token && `Bearer ${token}`,
+//   //       },
+//   //       referrer: 'https://talaria-web.vercel.app/',
+//   //     })
+//   //   );
+//   //   return {
+//   //     props: { dehydratedState: dehydrate(queryClient) },
+//   //     redirect: {
+//   //       destination: '/profile',
+//   //       permanent: false,
+//   //     },
+//   //   };
+//   // } catch (err) {
+//   //   return {
+//   //     props: {},
+//   //   };
+//   // }
+//   // if (req.cookies?.jwt) {
+//   //   try {
+//   //     const queryClient = new QueryClient();
+//   //     await queryClient.fetchQuery('userProfile', () =>
+//   //       client('http://localhost:4444/api/v1/users/me', {
+//   //         method: 'GET',
+//   //         credentials: 'include',
+//   //         headers: {
+//   //           Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
+//   //         },
+//   //         referrer: 'https://talaria-web.vercel.app/',
+//   //       })
+//   //     );
+//   //     return {
+//   //       props: { dehydratedState: dehydrate(queryClient) },
+//   //       redirect: {
+//   //         destination: '/profile',
+//   //         permanent: false,
+//   //       },
+//   //     };
+//   //   } catch (err) {
+//   //     return {
+//   //       props: {},
+//   //     };
+//   //   }
+//   // } else if (req) {
+//   //   try {
+//   //     const queryClient = new QueryClient();
+//   //     const token = parseCookies().jwt;
+//   //     await queryClient.fetchQuery('userProfile', () =>
+//   //       client('http://localhost:4444/api/v1/users/me', {
+//   //         method: 'GET',
+//   //         credentials: 'include',
+//   //         headers: {
+//   //           Authorization: token && `Bearer ${req.cookies.jwt}`,
+//   //         },
+//   //         referrer: 'https://talaria-web.vercel.app/',
+//   //       })
+//   //     );
+//   //     return {
+//   //       props: { dehydratedState: dehydrate(queryClient) },
+//   //       redirect: {
+//   //         destination: '/profile',
+//   //         permanent: false,
+//   //       },
+//   //     };
+//   //   } catch (err) {
+//   //     return {
+//   //       props: {},
+//   //     };
+//   //   }
+//   // } else {
+//   //   return {
+//   //     props: {},
+//   //   };
+//   // }
+// };
 
 export default Login;
 

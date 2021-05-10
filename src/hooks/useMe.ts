@@ -2,18 +2,13 @@ import { useQuery } from 'react-query';
 import { client } from '../utils/api-client';
 
 export function useMe() {
-  const {
-    data: {
-      data: { data: user },
-    },
-    isLoading,
-    status,
-  } = useQuery('userProfile', () =>
-    client('http://localhost:4444/api/v1/users/me', {
+  const response = useQuery('userProfile', () =>
+    client('/api/me', {
       method: 'GET',
       credentials: 'include',
     })
   );
+  console.log(response.data);
 
-  return { user, isLoading, status };
+  return {};
 }
