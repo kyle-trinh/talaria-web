@@ -32,6 +32,7 @@ export default withSession(async (req: any, res: any) => {
     // req.session.set('user', newUser);
     req.session.set('jwt', data.token);
     req.session.set('user', data.data.user);
+    await req.session.save();
     const cookies = new Cookies(req, res);
     cookies.set('jwt', data.token, {
       expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
@@ -40,7 +41,6 @@ export default withSession(async (req: any, res: any) => {
       // secure: true,
       httpOnly: true,
     });
-    await req.session.save();
     res.json(data);
   } catch (error) {
     const { response: fetchResponse } = error;
