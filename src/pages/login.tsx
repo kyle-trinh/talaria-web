@@ -28,6 +28,7 @@ const Login = () => {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
+        referrer: 'https://talaria-web.vercel.app/',
       }),
     {
       onSuccess: () => {
@@ -116,7 +117,7 @@ export const getServerSideProps: GetServerSideProps = async function ({
         props: { dehydratedState: dehydrate(queryClient) },
         redirect: {
           destination: '/profile',
-          permanenet: false,
+          permanent: false,
         },
       };
     } catch (err) {
