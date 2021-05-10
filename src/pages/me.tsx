@@ -38,10 +38,10 @@ import { TiSocialFacebookCircular } from 'react-icons/ti';
 import { ImPhone } from 'react-icons/im';
 import { FaAddressCard, FaPercentage } from 'react-icons/fa';
 
-const Profile = ({ user }) => {
+const Profile = ({ user }: { user: any }) => {
   const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { user: user2, isLoading, status: userStatus } = useMe();
+  // const { user: user2, isLoading, status: userStatus } = useMe();
 
   const {
     mutate,

@@ -18,7 +18,6 @@ import Link from 'next/link';
 import { IncomingMessage } from 'node:http';
 import cookie from 'cookie';
 import React from 'react';
-import { fetcher } from './api/login';
 
 interface LoginProps {}
 
@@ -27,7 +26,7 @@ const Login = () => {
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
     (data: { email: string; password: string }) =>
       // client('http://localhost:4444/api/v1/users/signin', {
-      fetcher('/api/login', {
+      client('/api/login', {
         method: 'POST',
         body: JSON.stringify(data),
         headers: {
