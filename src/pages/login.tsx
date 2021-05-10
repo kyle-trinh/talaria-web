@@ -102,6 +102,32 @@ export const getServerSideProps: GetServerSideProps = async function ({
   req,
   res,
 }: GetServerSidePropsContext) {
+  try {
+    const queryClient = new QueryClient();
+    const token = parseCookies().jwt;
+    await queryClient.fetchQuery('userProfile', () =>
+      client('http://localhost:4444/api/v1/users/me', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Authorization: token && `Bearer ${req.cookies.jwt}`,
+        },
+        referrer: 'https://talaria-web.vercel.app/',
+      })
+    );
+
+    return {
+      props: { dehydratedState: dehydrate(queryClient) },
+      redirect: {
+        destination: '/profile',
+        permanent: false,
+      },
+    };
+  } catch (err) {
+    return {
+      props: {},
+    };
+  }
   if (req.cookies?.jwt) {
     try {
       const queryClient = new QueryClient();
@@ -128,7 +154,7 @@ export const getServerSideProps: GetServerSideProps = async function ({
         props: {},
       };
     }
-  } else if (req.headers.cookie) {
+  } else if (req) {
     try {
       const queryClient = new QueryClient();
       const token = parseCookies().jwt;
