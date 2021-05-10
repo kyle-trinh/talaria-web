@@ -5,6 +5,7 @@ import {
   AlertIcon,
   AlertTitle,
   VStack,
+  cookieStorageManager,
 } from '@chakra-ui/react';
 import { useMutation, QueryClient } from 'react-query';
 import { useRouter } from 'next/router';
@@ -14,6 +15,8 @@ import { dehydrate } from 'react-query/hydration';
 import { Form, Formik } from 'formik';
 import { InputField } from '../components/InputField';
 import Link from 'next/link';
+import { IncomingMessage } from 'node:http';
+import cookie from 'cookie';
 
 interface LoginProps {}
 
@@ -125,6 +128,33 @@ export const getServerSideProps: GetServerSideProps = async function ({
         props: {},
       };
     }
+  } else if (req.headers.cookie) {
+    try {
+      const queryClient = new QueryClient();
+      const token = parseCookies().jwt;
+      await queryClient.fetchQuery('userProfile', () =>
+        client('http://localhost:4444/api/v1/users/me', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Authorization: token && `Bearer ${req.cookies.jwt}`,
+          },
+          referrer: 'https://talaria-web.vercel.app/',
+        })
+      );
+
+      return {
+        props: { dehydratedState: dehydrate(queryClient) },
+        redirect: {
+          destination: '/profile',
+          permanent: false,
+        },
+      };
+    } catch (err) {
+      return {
+        props: {},
+      };
+    }
   } else {
     return {
       props: {},
@@ -133,3 +163,12 @@ export const getServerSideProps: GetServerSideProps = async function ({
 };
 
 export default Login;
+
+function parseCookies(
+  req?: IncomingMessage,
+  options = {}
+): { [key: string]: string } {
+  return (
+    cookie.parse(req ? req.headers.cookie || '' : document.cookie), options
+  );
+}
