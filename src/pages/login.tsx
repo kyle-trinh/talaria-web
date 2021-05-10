@@ -108,6 +108,7 @@ export const getServerSideProps: GetServerSideProps = async function ({
           headers: {
             Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
           },
+          referrer: 'https://talaria-web.vercel.app/',
         })
       );
 
