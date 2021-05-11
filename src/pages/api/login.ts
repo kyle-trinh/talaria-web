@@ -41,7 +41,7 @@ export default withSession(async (req: any, res: any) => {
         // // secure: process.env.NODE_ENV === 'production' ? true : false,
         // secure: true,
         httpOnly: false,
-        domain: 'https://polar-river-10904.herokuapp.com/',
+        domain: '.talaria-order.xyz',
       });
     }
     res.json(data);

@@ -8,7 +8,7 @@ export default withSession(async (req: any, res: any) => {
   cookies.set('jwt', 'loggedout', {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
-    domain: 'https://polar-river-10904.herokuapp.com/',
+    domain: '.talaria-order.xyz',
   });
   res.json({ status: 'success' });
 });
