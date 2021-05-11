@@ -31,16 +31,16 @@ export default withSession(async (req: any, res: any) => {
     // console.log('here');
     // req.session.set('user', newUser);
     req.session.set('jwt', data.token);
-    req.session.set('user', data.data.user);
+    // req.session.set('user', data.data.user);
     await req.session.save();
-    const cookies = new Cookies(req, res);
-    cookies.set('jwt', data.token, {
-      expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-      // // only send cookie on https
-      // // secure: process.env.NODE_ENV === 'production' ? true : false,
-      // secure: true,
-      httpOnly: true,
-    });
+    // const cookies = new Cookies(req, res);
+    // cookies.set('jwt', data.token, {
+    //   expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+    //   // // only send cookie on https
+    //   // // secure: process.env.NODE_ENV === 'production' ? true : false,
+    //   // secure: true,
+    //   httpOnly: true,
+    // });
     res.json(data);
   } catch (error) {
     const { response: fetchResponse } = error;
