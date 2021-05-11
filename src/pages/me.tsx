@@ -39,6 +39,7 @@ import { FaAddressCard, FaPercentage } from 'react-icons/fa';
 import { Alert, AlertIcon, AlertTitle } from '@chakra-ui/core';
 import { withSession } from '../lib/withSession';
 import { checkAuth } from '../utils/checkAuth';
+import NextLink from 'next/link';
 
 const Profile = () => {
   console.log('PASSWORD: ', process.env.NEXT_PUBLIC_SESSION_PASSWORD);
@@ -252,53 +253,59 @@ const Profile = () => {
                       </PopoverContent>
                     </Popover>
                   </Box>
-
-                  <Box>
-                    <Popover>
-                      <PopoverTrigger>
-                        <Button
-                          rightIcon={<FaPercentage />}
-                          variant='outline'
-                          colorScheme='teal'
-                          size='sm'
-                        >
-                          Commission rates
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent>
-                        <PopoverArrow />
-                        <PopoverCloseButton />
-                        <PopoverHeader>Commission Rates</PopoverHeader>
-                        <PopoverBody>
-                          <List>
-                            <VStack
-                              spacing='6px'
-                              justifyContent='center'
-                              alignItems='flex-start'
-                            >
-                              {user.profile.commissionRates.map((rate: any) => (
-                                <ListItem key={rate._id}>
-                                  <Tag
-                                    colorScheme='teal'
-                                    mr='6px'
-                                    variant='solid'
-                                  >
-                                    {rate.website}
-                                  </Tag>
-                                  {parseFloat(
-                                    rate.rate['$numberDecimal']
-                                  ).toLocaleString('en-GB', {
-                                    style: 'percent',
-                                    maximumSignificantDigits: 4,
-                                  })}
-                                </ListItem>
-                              ))}
-                            </VStack>
-                          </List>
-                        </PopoverBody>
-                      </PopoverContent>
-                    </Popover>
-                  </Box>
+                  {user.role !== 'customer' && (
+                    <Box>
+                      <Popover>
+                        <PopoverTrigger>
+                          <Button
+                            rightIcon={<FaPercentage />}
+                            variant='outline'
+                            colorScheme='teal'
+                            size='sm'
+                          >
+                            Commission rates
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent>
+                          <PopoverArrow />
+                          <PopoverCloseButton />
+                          <PopoverHeader>Commission Rates</PopoverHeader>
+                          <PopoverBody>
+                            {user.profile.commissionRates.length === 0 && (
+                              <Text>N/A</Text>
+                            )}
+                            <List>
+                              <VStack
+                                spacing='6px'
+                                justifyContent='center'
+                                alignItems='flex-start'
+                              >
+                                {user.profile.commissionRates.map(
+                                  (rate: any) => (
+                                    <ListItem key={rate._id}>
+                                      <Tag
+                                        colorScheme='teal'
+                                        mr='6px'
+                                        variant='solid'
+                                      >
+                                        {rate.website}
+                                      </Tag>
+                                      {parseFloat(
+                                        rate.rate['$numberDecimal']
+                                      ).toLocaleString('en-GB', {
+                                        style: 'percent',
+                                        maximumSignificantDigits: 4,
+                                      })}
+                                    </ListItem>
+                                  )
+                                )}
+                              </VStack>
+                            </List>
+                          </PopoverBody>
+                        </PopoverContent>
+                      </Popover>
+                    </Box>
+                  )}
 
                   <Box>
                     <Popover>
@@ -317,6 +324,9 @@ const Profile = () => {
                         <PopoverCloseButton />
                         <PopoverHeader>Discount rates</PopoverHeader>
                         <PopoverBody>
+                          {user.profile.discountRates.length === 0 && (
+                            <Text>N/A</Text>
+                          )}
                           <List>
                             <VStack
                               spacing='6px'
@@ -407,6 +417,17 @@ const Profile = () => {
                     </Popover>
                   </Box>
                 </Grid>
+                <NextLink href={`/users/${user._id}/edit`}>
+                  <a>
+                    <Button
+                      colorScheme='teal'
+                      mt='16px'
+                      rightIcon={<RiEditFill />}
+                    >
+                      Edit profile
+                    </Button>
+                  </a>
+                </NextLink>
               </Box>
             </Box>
           )}

@@ -8,7 +8,8 @@ export default withSession(async (req: any, res: any) => {
   cookies.set('jwt', 'loggedout', {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
-    domain: '.talaria-order.xyz',
+    domain:
+      process.env.NODE_ENV === 'production' ? '.talaria-order.xyz' : undefined,
   });
   res.json({ status: 'success' });
 });

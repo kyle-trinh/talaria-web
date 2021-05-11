@@ -16,6 +16,10 @@ import { Form, Formik } from 'formik';
 import { InputField } from '../components/InputField';
 import Link from 'next/link';
 import Header from '../components/Header';
+import { BASE_URL } from '../constants';
+import { checkAuth } from '../utils/checkAuth';
+import { withSession } from '../lib/withSession';
+import { IncomingMessage } from 'node:http';
 
 interface ResponseError {
   status: string;
@@ -26,9 +30,29 @@ const Register = () => {
   const route = useRouter();
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
     (data: { email: string; password: string }) =>
-      client('http://localhost:4444/api/v1/users/signup', {
+      client(`api/register`, {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          profile: {
+            commissionRates: [
+              { website: 'amazon', rate: 0.05 },
+              { website: 'sephora', rate: 0.05 },
+              { website: 'bestbuy', rate: 0.05 },
+              { website: 'walmart', rate: 0.05 },
+              { website: 'target', rate: 0.05 },
+              { website: 'costco', rate: 0.05 },
+            ],
+            discountRates: [
+              { website: 'amazon', rate: 0.08 },
+              { website: 'sephora', rate: 0.08 },
+              { website: 'bestbuy', rate: 0.08 },
+              { website: 'walmart', rate: 0.08 },
+              { website: 'target', rate: 0.08 },
+              { website: 'costco', rate: 0.08 },
+            ],
+          },
+        }),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -36,7 +60,7 @@ const Register = () => {
       }),
     {
       onSuccess: () => {
-        route.push('/profile');
+        route.push('/me');
       },
     }
   );
@@ -54,6 +78,9 @@ const Register = () => {
           passwordConfirm: '',
           firstName: '',
           lastName: '',
+          profile: {
+            dob: '',
+          },
         }}
         onSubmit={(values) => {
           mutate(values);
@@ -88,6 +115,7 @@ const Register = () => {
                 placeholder='First Name'
                 label='First Name'
                 type='text'
+                required
               />
               <InputField
                 name='lastName'
@@ -100,18 +128,27 @@ const Register = () => {
                 placeholder='Email'
                 label='Email'
                 type='email'
+                required
+              />
+              <InputField
+                name='profile.dob'
+                label='Date of birth'
+                type='date'
+                required
               />
               <InputField
                 name='password'
                 placeholder='Password'
                 label='Password'
                 type='password'
+                required
               />
               <InputField
                 name='passwordConfirm'
                 placeholder='Password Confirm'
                 label='Password Confirm'
                 type='password'
+                required
               />
             </VStack>
             <HStack spacing='8px' mt='16px'>
@@ -135,40 +172,19 @@ const Register = () => {
     </Box>
   );
 };
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-}: GetServerSidePropsContext) {
-  if (req.cookies?.jwt) {
-    try {
-      const queryClient = new QueryClient();
-      await queryClient.fetchQuery('userProfile', () =>
-        client('http://localhost:4444/api/v1/users/me', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-          },
-        })
-      );
-
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req }: any) {
+    const jwt = req.session.get('jwt');
+    if (jwt) {
       return {
-        props: { dehydratedState: dehydrate(queryClient) },
         redirect: {
-          destination: '/profile',
-          permanenet: false,
+          destination: '/me',
+          permanent: false,
         },
       };
-    } catch (err) {
-      return {
-        props: {},
-      };
     }
-  } else {
-    return {
-      props: {},
-    };
+    return { props: {} };
   }
-};
+);
 
 export default Register;

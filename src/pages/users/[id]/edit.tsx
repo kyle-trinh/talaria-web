@@ -50,6 +50,7 @@ import ExternalLink from '../../../components/ExternalLink';
 import { AiOutlineClose } from 'react-icons/ai';
 import { checkAuth } from '../../../utils/checkAuth';
 import { withSession } from '../../../lib/withSession';
+import user from '../../api/user';
 interface SocialMedia {
   website: string;
   link: string;
@@ -195,10 +196,11 @@ export default function NewUser({ id }: { id: string }) {
                   email: userData.email,
                   role: userData.role,
                   profile: {
+                    dob: userData.profile?.dob?.slice(0, 10) || '',
                     socialMedias,
                     phoneNumbers,
                     commissionRates,
-                    customerType: userData.profile.customerType || '',
+                    customerType: userData?.profile?.customerType || '',
                     address,
                     discountRates,
                     bankAccts,
@@ -216,7 +218,7 @@ export default function NewUser({ id }: { id: string }) {
                       address,
                       discountRates,
                       bankAccts,
-                      dob: userData.profile.dob,
+                      dob: values.profile.dob,
                     },
                   });
                 }}
@@ -265,12 +267,19 @@ export default function NewUser({ id }: { id: string }) {
                         label='Email'
                         required
                       />
+                      <InputField
+                        type='date'
+                        name='profile.dob'
+                        label='Date of Birth'
+                        required
+                      />
                       <Field name='role'>
                         {({ field }: { field: FieldInputProps<any> }) => (
                           <FormControl>
                             <FormLabel htmlFor='role'>Role</FormLabel>
                             <Select {...field} id='role' required>
                               <option value=''>Select one</option>
+                              <option value='admin'>Admin</option>
                               <option value='customer'>Customer</option>
                               <option value='affiliate'>Affiliate</option>
                             </Select>

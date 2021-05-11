@@ -30,6 +30,10 @@ export async function checkAuth(req: any, optional?: any) {
       props: { dehydratedState: dehydrate(queryClient), ...optional },
     };
   } catch (err) {
+    await client('/api/logout', {
+      method: 'GET',
+      credentials: 'include',
+    });
     return {
       redirect: {
         destination: '/login',

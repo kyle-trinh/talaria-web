@@ -16,6 +16,8 @@ import Link from 'next/link';
 import { IncomingMessage } from 'node:http';
 import cookie from 'cookie';
 import React from 'react';
+import { withSession } from '../lib/withSession';
+import { GetServerSideProps } from 'next';
 
 interface LoginProps {}
 
@@ -99,10 +101,20 @@ const Login = () => {
     </Box>
   );
 };
-// export const getServerSideProps: GetServerSideProps = async function ({
-//   req,
-//   res,
-// }: GetServerSidePropsContext) {
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req }: any) {
+    const jwt = req.session.get('jwt');
+    if (jwt) {
+      return {
+        redirect: {
+          destination: '/me',
+          permanent: false,
+        },
+      };
+    }
+    return { props: {} };
+  }
+);
 //   // try {
 //   //   const queryClient = new QueryClient();
 //   //   const token = parseCookies().jwt;
