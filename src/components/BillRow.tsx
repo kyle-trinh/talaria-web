@@ -177,6 +177,9 @@ export default function BillRow({ single, reloadPage }: I_Bill_Row) {
               borderRadius='50%'
             />
             <MenuList>
+              <NextLink href={`/bills/${single._id}`} passHref>
+                <MenuItem>View details</MenuItem>
+              </NextLink>
               <NextLink href={`/bills/${single._id}/edit`} passHref>
                 <MenuItem>Edit</MenuItem>
               </NextLink>

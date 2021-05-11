@@ -48,6 +48,8 @@ import { useMe } from '../../../hooks/useMe';
 import { removeBlankField } from '../../../utils';
 import ExternalLink from '../../../components/ExternalLink';
 import { AiOutlineClose } from 'react-icons/ai';
+import { checkAuth } from '../../../utils/checkAuth';
+import { withSession } from '../../../lib/withSession';
 interface SocialMedia {
   website: string;
   link: string;
@@ -96,7 +98,11 @@ export default function NewUser({ id }: { id: string }) {
   const [commissionRates, setCommissionRates] = useState<CommissionRate[]>([]);
   const [address, setAddress] = useState<Address[]>([]);
   const [discountRates, setDiscountRates] = useState<CommissionRate[]>([]);
-  const { data: editData, status: editStatus, error: editError } = useQuery(
+  const {
+    data: editData,
+    status: editStatus,
+    error: editError,
+  } = useQuery(
     ['user', id],
     () =>
       client(`${BASE_URL}/users/${id}`, {
@@ -146,7 +152,6 @@ export default function NewUser({ id }: { id: string }) {
     onClose: onAdClose,
   } = useDisclosure();
 
-  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
     (data: I_FormData) => {
       const submitData = removeBlankField({
@@ -173,12 +178,7 @@ export default function NewUser({ id }: { id: string }) {
   return (
     <>
       <Header title='Edit user' />
-      <ContentHeader
-        title='Edit user'
-        user={user}
-        isLoading={isUserLoading}
-        status={userStatus}
-      />
+      <ContentHeader title='Edit user' />
       <ContentBody>
         {editStatus === 'loading' ? null : editStatus === 'error' ? (
           <Alert status='error'>
@@ -466,17 +466,17 @@ export default function NewUser({ id }: { id: string }) {
                                           <Editable
                                             defaultValue={rate.rate.toString()}
                                             onSubmit={(value) => {
-                                              const index = commissionRates.findIndex(
-                                                (com) =>
-                                                  com.website === rate.website
-                                              );
+                                              const index =
+                                                commissionRates.findIndex(
+                                                  (com) =>
+                                                    com.website === rate.website
+                                                );
                                               const copyArr = [
                                                 ...commissionRates,
                                               ];
 
-                                              copyArr[index].rate = parseFloat(
-                                                value
-                                              );
+                                              copyArr[index].rate =
+                                                parseFloat(value);
                                               setCommissionRates(copyArr);
                                             }}
                                           >
@@ -515,15 +515,15 @@ export default function NewUser({ id }: { id: string }) {
                                         <Editable
                                           defaultValue={rate.rate.toString()}
                                           onSubmit={(value) => {
-                                            const index = discountRates.findIndex(
-                                              (com) =>
-                                                com.website === rate.website
-                                            );
+                                            const index =
+                                              discountRates.findIndex(
+                                                (com) =>
+                                                  com.website === rate.website
+                                              );
                                             const copyArr = [...discountRates];
 
-                                            copyArr[index].rate = parseFloat(
-                                              value
-                                            );
+                                            copyArr[index].rate =
+                                              parseFloat(value);
                                             setDiscountRates(copyArr);
                                           }}
                                         >
@@ -795,32 +795,8 @@ export default function NewUser({ id }: { id: string }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-  params,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient), id: params!.id },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req, params }: GetServerSidePropsContext) {
+    return checkAuth(req, { id: params!.id });
   }
-};
+);

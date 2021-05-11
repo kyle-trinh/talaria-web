@@ -38,18 +38,18 @@ import {
 } from '@chakra-ui/react';
 import { InputField } from '../../../components/InputField';
 import { client } from '../../../utils/api-client';
-import { useMutation, useQuery, QueryClient } from 'react-query';
+import { useMutation, useQuery } from 'react-query';
 import { BASE_URL } from '../../../constants';
 import { useRouter } from 'next/router';
 import { BiCheckCircle } from 'react-icons/bi';
 import NextLink from 'next/link';
 import { Formik, Form, Field, FieldInputProps } from 'formik';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
-import { dehydrate } from 'react-query/hydration';
-import { useMe } from '../../../hooks/useMe';
 import { removeBlankField } from '../../../utils';
 import { MoneyType } from '../../../types';
 import { AiOutlineClose } from 'react-icons/ai';
+import { checkAuth } from '../../../utils/checkAuth';
+import { withSession } from '../../../lib/withSession';
 
 interface Item_Interface {
   _id: string;
@@ -95,7 +95,6 @@ export interface I_Bill_Form {
 
 export default function EditBill({ id }: { id: string }) {
   const router = useRouter();
-  const { user, isLoading: isUserLoading, status: currentUserStatus } = useMe();
   const [items, setItems] = React.useState<Item_Interface[]>([]);
 
   const {
@@ -171,20 +170,18 @@ export default function EditBill({ id }: { id: string }) {
     }
   );
 
-  const { data: users, status: userStatus, error: userError } = useQuery(
-    ['users'],
-    () => client(`${BASE_URL}/users?fields=_id,firstName,lastName,role`)
+  const {
+    data: users,
+    status: userStatus,
+    error: userError,
+  } = useQuery(['users'], () =>
+    client(`${BASE_URL}/users?fields=_id,firstName,lastName,role`)
   );
 
   return (
     <>
       <Header title={`Edit bill ${id}`} />
-      <ContentHeader
-        title={`Edit bill ${id}`}
-        user={user}
-        isLoading={isUserLoading}
-        status={currentUserStatus}
-      />
+      <ContentHeader title={`Edit bill ${id}`} />
       <ContentBody>
         <Box maxW='1080px' width='100%'>
           {getBillStatus === 'loading' ? null : getBillStatus === 'error' ? (
@@ -654,32 +651,8 @@ export default function EditBill({ id }: { id: string }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-  params,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient), id: params!.id },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req, res, params }: GetServerSidePropsContext) {
+    return checkAuth(req, { id: params!.id });
   }
-};
+);

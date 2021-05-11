@@ -15,32 +15,21 @@ import { client } from '../utils/api-client';
 import { useMutation, useQueryClient } from 'react-query';
 import { BASE_URL } from '../constants';
 import { useRouter } from 'next/router';
+import { useMe } from '../hooks/useMe';
 
 interface Props {
   title: string;
-  user: any;
-  isLoading: boolean;
-  status: string;
+  user?: any;
+  isLoading?: boolean;
+  status?: string;
 }
 
-export default function ContentHeader({
-  title,
-  isLoading,
-  user,
-  status,
-}: Props) {
+export default function ContentHeader({ title }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const {
-    mutate,
-    isLoading: isLogoutLoading,
-    isError,
-    error,
-    isSuccess,
-    reset,
-  } = useMutation(
+  const { mutate, status: mutateStatus } = useMutation(
     () =>
-      client(`${BASE_URL}/users/signout`, {
+      client(`/api/logout`, {
         method: 'GET',
         credentials: 'include',
       }),
@@ -51,6 +40,9 @@ export default function ContentHeader({
       },
     }
   );
+
+  const { data, error, status: userStatus } = useMe();
+  const user = userStatus === 'success' && data.data.data;
   return (
     <Box
       gridArea='header'
@@ -66,33 +58,41 @@ export default function ContentHeader({
         {title}
       </Box>
       <Box>
-        {!isLoading && user && (
-          <Menu>
-            <MenuButton>
-              {status === 'loading' ? (
-                <SkeletonCircle w='50px' h='50px' />
-              ) : (
-                <Image
-                  objectFit='cover'
-                  boxSize='70px'
-                  borderRadius='50%'
-                  alt={`${user.firstName} ${user?.lastName}`}
-                  src={`http://localhost:4444/api/v1/users/images/${user.profilePicture}`}
-                  fallback={<SkeletonCircle w='50px' h='50px' />}
-                />
-              )}
-            </MenuButton>
-            <MenuList>
-              <NextLink href='/me' passHref>
-                <MenuItem icon={<HiOutlineViewGrid />}>View Profile</MenuItem>
-              </NextLink>
-              <MenuItem onClick={() => mutate()} icon={<RiLogoutBoxRLine />}>
-                Sign out
-              </MenuItem>
-            </MenuList>
-          </Menu>
-        )}
-        {/* <Icon as={RiUser5Fill} w={45} h={45} color='gray' /> */}
+        {userStatus === 'loading'
+          ? null
+          : userStatus === 'error'
+          ? null
+          : userStatus === 'success' && (
+              <Menu>
+                <MenuButton>
+                  {mutateStatus === 'loading' ? (
+                    <SkeletonCircle w='50px' h='50px' />
+                  ) : (
+                    <Image
+                      objectFit='cover'
+                      boxSize='70px'
+                      borderRadius='50%'
+                      alt={`${user.firstName} ${user?.lastName}`}
+                      src={`${BASE_URL}/users/images/${user.profilePicture}`}
+                      fallback={<SkeletonCircle w='50px' h='50px' />}
+                    />
+                  )}
+                </MenuButton>
+                <MenuList>
+                  <NextLink href='/me' passHref>
+                    <MenuItem icon={<HiOutlineViewGrid />}>
+                      View Profile
+                    </MenuItem>
+                  </NextLink>
+                  <MenuItem
+                    onClick={() => mutate()}
+                    icon={<RiLogoutBoxRLine />}
+                  >
+                    Sign out
+                  </MenuItem>
+                </MenuList>
+              </Menu>
+            )}
       </Box>
     </Box>
   );

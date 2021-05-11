@@ -38,18 +38,18 @@ import {
 } from '@chakra-ui/react';
 import { InputField } from '../../components/InputField';
 import { client } from '../../utils/api-client';
-import { useMutation, useQuery, QueryClient } from 'react-query';
+import { useMutation, useQuery } from 'react-query';
 import { BASE_URL } from '../../constants';
 import { useRouter } from 'next/router';
 import { BiCheckCircle } from 'react-icons/bi';
 import NextLink from 'next/link';
 import { Formik, Form, Field, FieldInputProps } from 'formik';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
-import { dehydrate } from 'react-query/hydration';
-import { useMe } from '../../hooks/useMe';
 import { removeBlankField } from '../../utils';
 import { MoneyType } from '../../types';
 import { AiOutlineClose } from 'react-icons/ai';
+import { checkAuth } from '../../utils/checkAuth';
+import { withSession } from '../../lib/withSession';
 
 interface Item_Interface {
   _id: string;
@@ -95,7 +95,6 @@ interface I_Item_Form {
 
 export default function NewBill() {
   const router = useRouter();
-  const { user, isLoading: isUserLoading, status: currentUserStatus } = useMe();
   const [items, setItems] = React.useState<Item_Interface[]>([]);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -158,20 +157,18 @@ export default function NewBill() {
     }
   );
 
-  const { data: users, status: userStatus, error: userError } = useQuery(
-    ['users'],
-    () => client(`${BASE_URL}/users?fields=_id,firstName,lastName,role`)
+  const {
+    data: users,
+    status: userStatus,
+    error: userError,
+  } = useQuery(['users'], () =>
+    client(`${BASE_URL}/users?fields=_id,firstName,lastName,role`)
   );
 
   return (
     <>
       <Header title='Create a new bill' />
-      <ContentHeader
-        title='Create a new bill'
-        user={user}
-        isLoading={isUserLoading}
-        status={currentUserStatus}
-      />
+      <ContentHeader title='Create a new bill' />
       <ContentBody>
         <Box maxW='1080px' width='100%'>
           {router.query.customer !== undefined && (
@@ -630,31 +627,8 @@ export default function NewBill() {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient) },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req, res }: GetServerSidePropsContext) {
+    return checkAuth(req);
   }
-};
+);

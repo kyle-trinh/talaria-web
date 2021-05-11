@@ -16,22 +16,25 @@ import { Form, Formik } from 'formik';
 import { InputField } from '../../../components/InputField';
 import { Button } from '@chakra-ui/button';
 import { Alert, AlertIcon, AlertTitle } from '@chakra-ui/alert';
-import { dehydrate } from 'react-query/hydration';
-import { useMe } from '../../../hooks/useMe';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { removeBlankField } from '../../../utils';
 import { I_Item } from '../../../types';
+import { checkAuth } from '../../../utils/checkAuth';
+import { withSession } from '../../../lib/withSession';
 
-export default function EditItem() {
+export default function EditItem({ id }: { id: string }) {
   const router = useRouter();
-  const { id } = router.query;
   const queryClient = useQueryClient();
-  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const { status, data, error } = useQuery(['item', id], () =>
     client(`${BASE_URL}/items/${id}`)
   );
 
-  const { mutate, error: mutateError, isError, isLoading } = useMutation(
+  const {
+    mutate,
+    error: mutateError,
+    isError,
+    isLoading,
+  } = useMutation(
     (data: I_Item) =>
       client(`${BASE_URL}/items/${id}`, {
         method: 'PATCH',
@@ -51,12 +54,7 @@ export default function EditItem() {
   return (
     <>
       <Header title='Edit item' />
-      <ContentHeader
-        title='Edit item'
-        user={user}
-        isLoading={isUserLoading}
-        status={userStatus}
-      />
+      <ContentHeader title='Edit item' />
       <ContentBody>
         <Box maxW='1080px' width='100%'>
           {status === 'loading' ? null : status === 'error' ? (
@@ -219,31 +217,8 @@ export default function EditItem() {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient) },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req, params }: GetServerSidePropsContext) {
+    return checkAuth(req, { id: params!.id });
   }
-};
+);

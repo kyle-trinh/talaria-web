@@ -53,6 +53,8 @@ import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { dehydrate } from 'react-query/hydration';
 import { useMe } from '../../hooks/useMe';
 import { I_Warehouse } from '../../types';
+import { checkAuth } from '../../utils/checkAuth';
+import { withSession } from '../../lib/withSession';
 
 const layout = Array.from({ length: 8 });
 
@@ -75,13 +77,11 @@ const LoadingLayout = () => (
   </>
 );
 const Cryptos = () => {
-  const [freezeNo, setFreezeNo] = useState(4);
   const [selected, setSelected] = useState(GIFT_CARD_DEFAULT);
   const [sort, setSort] = useState('_id:desc');
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
   const [filter, setFilter] = useState('');
-  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const {
     isOpen: isOpen2,
     onOpen: onOpen2,
@@ -139,12 +139,7 @@ const Cryptos = () => {
   return (
     <>
       <Header title='Warehouses' />
-      <ContentHeader
-        title='Warehouses'
-        user={user}
-        isLoading={isUserLoading}
-        status={userStatus}
-      />
+      <ContentHeader title='Warehouses' />
       <Box
         gridArea='main'
         bg='white'
@@ -377,33 +372,10 @@ const Cryptos = () => {
   );
 };
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient) },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req, res }: GetServerSidePropsContext) {
+    return checkAuth(req);
   }
-};
+);
 
 export default Cryptos;

@@ -1,6 +1,6 @@
 import { BASE_URL } from '../../constants';
 import { client } from '../../utils/api-client';
-import { withSession } from '../me';
+import { withSession } from '../../lib/withSession';
 
 export default withSession(async (req: any, res: any) => {
   console.log(req);

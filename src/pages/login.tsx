@@ -4,14 +4,12 @@ import {
   Alert,
   AlertIcon,
   AlertTitle,
+  HStack,
   VStack,
-  cookieStorageManager,
 } from '@chakra-ui/react';
-import { useMutation, QueryClient } from 'react-query';
+import { useMutation } from 'react-query';
 import { useRouter } from 'next/router';
-import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { client } from '../utils/api-client';
-import { dehydrate } from 'react-query/hydration';
 import { Form, Formik } from 'formik';
 import { InputField } from '../components/InputField';
 import Link from 'next/link';
@@ -25,7 +23,6 @@ const Login = () => {
   const route = useRouter();
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
     (data: { email: string; password: string }) =>
-      // client('http://localhost:4444/api/v1/users/signin', {
       client('/api/login', {
         method: 'POST',
         body: JSON.stringify(data),
@@ -66,7 +63,8 @@ const Login = () => {
                 <AlertTitle mr={2}>Login successful! Redirecting...</AlertTitle>
               </Alert>
             ) : null}
-            <VStack spacing='8px'>
+
+            <VStack spacing='12px' alignItems='stretch' width='400px'>
               <InputField
                 name='email'
                 placeholder='Email'
@@ -80,19 +78,21 @@ const Login = () => {
                 type='password'
               />
             </VStack>
-            <Button
-              colorScheme='teal'
-              type='submit'
-              isLoading={isLoading}
-              loadingText='Submitting'
-            >
-              Login
-            </Button>
-            <Button colorScheme='gray' ml={3}>
-              <Link href='/register'>
-                <a>Register</a>
-              </Link>
-            </Button>
+            <HStack spacing='8px' mt='16px'>
+              <Button
+                colorScheme='teal'
+                type='submit'
+                isLoading={isLoading}
+                loadingText='Submitting'
+              >
+                Login
+              </Button>
+              <Button colorScheme='gray' ml={3}>
+                <Link href='/register'>
+                  <a>Register</a>
+                </Link>
+              </Button>
+            </HStack>
           </Form>
         )}
       </Formik>

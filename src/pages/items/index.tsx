@@ -60,6 +60,8 @@ import { useMe } from '../../hooks/useMe';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { dehydrate } from 'react-query/hydration';
 import { I_Item } from '../../types';
+import { checkAuth } from '../../utils/checkAuth';
+import { withSession } from '../../lib/withSession';
 
 const FilterInput = () => (
   <VStack spacing='8px'>
@@ -167,7 +169,6 @@ const Items = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
   const [filter, setFilter] = useState('');
-  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const { status, data, error } = useItems(
     null,
     page,
@@ -186,12 +187,7 @@ const Items = () => {
   return (
     <>
       <Header title='Items' />
-      <ContentHeader
-        title='Items'
-        user={user}
-        isLoading={isUserLoading}
-        status={userStatus}
-      />
+      <ContentHeader title='Items' />
       <Box
         gridArea='main'
         bg='white'
@@ -586,33 +582,10 @@ function ItemRow({ single, reloadPage, selected, freezeNo }: ItemRowProps) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient) },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req, res }: GetServerSidePropsContext) {
+    return checkAuth(req);
   }
-};
+);
 
 export default Items;

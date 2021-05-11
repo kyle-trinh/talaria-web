@@ -1,19 +1,17 @@
 import { Box, HStack, Text } from '@chakra-ui/layout';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/table';
-import { useQuery, QueryClient } from 'react-query';
+import { useQuery } from 'react-query';
 import ContentHeader from '../../../components/ContentHeader';
 import Header from '../../../components/Header';
 import { BASE_URL } from '../../../constants';
 import { client } from '../../../utils/api-client';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
-import { dehydrate } from 'react-query/hydration';
-import { useMe } from '../../../hooks/useMe';
 import { Alert, AlertIcon, AlertTitle } from '@chakra-ui/alert';
 import { I_Item } from '../../../types';
+import { checkAuth } from '../../../utils/checkAuth';
+import { withSession } from '../../../lib/withSession';
 
 export default function BillDetail({ id }: { id: string }) {
-  const { user, isLoading: userIsLoading, status: userStatus } = useMe();
-
   const { status, data, error } = useQuery(['bill', id], () =>
     client(`${BASE_URL}/bills/${id}`)
   );
@@ -21,12 +19,7 @@ export default function BillDetail({ id }: { id: string }) {
   return (
     <>
       <Header title='Bills details' />
-      <ContentHeader
-        title='Bill details'
-        user={user}
-        isLoading={userIsLoading}
-        status={userStatus}
-      />
+      <ContentHeader title='Bill details' />
       <Box
         gridArea='main'
         bg='white'
@@ -188,32 +181,8 @@ export default function BillDetail({ id }: { id: string }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-  params,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient), id: params!.id },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req, res, params }: GetServerSidePropsContext) {
+    return checkAuth(req, { id: params!.id });
   }
-};
+);

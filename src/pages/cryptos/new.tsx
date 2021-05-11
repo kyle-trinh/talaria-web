@@ -18,14 +18,14 @@ import {
 import { Formik, Form, Field, FieldInputProps } from 'formik';
 import { InputField } from '../../components/InputField';
 import { client } from '../../utils/api-client';
-import { QueryClient, useMutation, useQuery } from 'react-query';
+import { useMutation, useQuery } from 'react-query';
 import { BASE_URL } from '../../constants';
 import { useRouter } from 'next/router';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
-import { dehydrate } from 'react-query/hydration';
-import { useMe } from '../../hooks/useMe';
 import { removeBlankField } from '../../utils';
 import { MoneyType, I_Account, I_User } from '../../types';
+import { checkAuth } from '../../utils/checkAuth';
+import { withSession } from '../../lib/withSession';
 
 interface I_FormData {
   fromAccount: string;
@@ -41,7 +41,6 @@ interface I_FormData {
 
 export default function NewCrypto() {
   const route = useRouter();
-  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
     (data: I_FormData) => {
       const submitData = removeBlankField({
@@ -63,9 +62,12 @@ export default function NewCrypto() {
     }
   );
 
-  const { data: users, status: usersStatus, error: usersError } = useQuery(
-    ['users', 'admin'],
-    () => client(`${BASE_URL}/users?role=admin`, { credentials: 'include' })
+  const {
+    data: users,
+    status: usersStatus,
+    error: usersError,
+  } = useQuery(['users', 'admin'], () =>
+    client(`${BASE_URL}/users?role=admin`, { credentials: 'include' })
   );
 
   const {
@@ -79,12 +81,7 @@ export default function NewCrypto() {
   return (
     <>
       <Header title='Create a new crypto transaction' />
-      <ContentHeader
-        title='Create a new crypto transaction'
-        user={user}
-        isLoading={isUserLoading}
-        status={userStatus}
-      />
+      <ContentHeader title='Create a new crypto transaction' />
       <ContentBody>
         <Box maxW='1080px' width='100%'>
           <Formik
@@ -248,7 +245,7 @@ export default function NewCrypto() {
                         <FormLabel htmlFor='buyer'>Buyer</FormLabel>
                         <Select {...field} id='buyer' required>
                           <option value=''>Select one</option>
-                          {usersStatus === 'loading' ? null : userStatus ===
+                          {usersStatus === 'loading' ? null : usersStatus ===
                             'error' ? (
                             <option value='error'>
                               {(usersError as Error).message}
@@ -285,31 +282,8 @@ export default function NewCrypto() {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient) },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req }: GetServerSidePropsContext) {
+    return checkAuth(req);
   }
-};
+);

@@ -1,14 +1,14 @@
 import { useQuery } from 'react-query';
+import { BASE_URL } from '../constants';
 import { client } from '../utils/api-client';
 
 export function useMe() {
-  const { data, isLoading, status } = useQuery('userProfile', () =>
-    client('/api/me', {
+  const { data, error, status } = useQuery('userProfile', () =>
+    client(`${BASE_URL}/users/me`, {
       method: 'GET',
       credentials: 'include',
     })
   );
-  // console.log(response.data);
 
-  return { user: data, isLoading: isLoading, status: status };
+  return { data, error, status };
 }

@@ -54,6 +54,8 @@ import { I_Crypto } from '../../types';
 import { useMe } from '../../hooks/useMe';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { dehydrate } from 'react-query/hydration';
+import { checkAuth } from '../../utils/checkAuth';
+import { withSession } from '../../lib/withSession';
 
 const layout = Array.from({ length: 8 });
 
@@ -77,7 +79,6 @@ const LoadingLayout = () => (
 );
 const Cryptos = () => {
   const [freezeNo, setFreezeNo] = useState(4);
-  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const [selected, setSelected] = useState(CRYPTO_DEFAULT);
   const [sort, setSort] = useState('_id:desc');
   const [page, setPage] = useState(1);
@@ -102,12 +103,7 @@ const Cryptos = () => {
   return (
     <>
       <Header title='Cryptos' />
-      <ContentHeader
-        title='Cryptos'
-        user={user}
-        isLoading={isUserLoading}
-        status={userStatus}
-      />
+      <ContentHeader title='Cryptos' />
       <Box
         gridArea='main'
         bg='white'
@@ -381,32 +377,9 @@ function CryptoRow({ single, selected, freezeNo, reloadPage }: I_Crypto_Row) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient) },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req, res }: GetServerSidePropsContext) {
+    return checkAuth(req);
   }
-};
+);
 export default Cryptos;

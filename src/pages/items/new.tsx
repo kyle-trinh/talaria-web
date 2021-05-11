@@ -23,6 +23,8 @@ import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { dehydrate } from 'react-query/hydration';
 import { useMe } from '../../hooks/useMe';
 import { removeBlankField } from '../../utils';
+import { checkAuth } from '../../utils/checkAuth';
+import { withSession } from '../../lib/withSession';
 
 interface I_FormData {
   name: string;
@@ -40,7 +42,6 @@ interface I_FormData {
 
 export default function NewItem() {
   const route = useRouter();
-  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
     (data: I_FormData) => {
       const submitData = removeBlankField({
@@ -65,12 +66,7 @@ export default function NewItem() {
   return (
     <>
       <Header title='Create a new item' />
-      <ContentHeader
-        title='Create a new item'
-        user={user}
-        isLoading={isUserLoading}
-        status={userStatus}
-      />
+      <ContentHeader title='Create a new item' />
       <ContentBody>
         <Box maxW='1080px' width='100%'>
           <Formik
@@ -233,31 +229,8 @@ export default function NewItem() {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient) },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req }: GetServerSidePropsContext) {
+    return checkAuth(req);
   }
-};
+);

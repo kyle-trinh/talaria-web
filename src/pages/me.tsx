@@ -30,18 +30,22 @@ import {
 import { RiBankFill, RiEditFill } from 'react-icons/ri';
 import React, { useRef } from 'react';
 import { BASE_URL } from '../constants';
-import NextLink from 'next/link';
 import ExternalLink from '../components/ExternalLink';
 import { useMe } from '../hooks/useMe';
 import { renderDate } from '../utils';
 import { TiSocialFacebookCircular } from 'react-icons/ti';
 import { ImPhone } from 'react-icons/im';
 import { FaAddressCard, FaPercentage } from 'react-icons/fa';
+import { Alert, AlertIcon, AlertTitle } from '@chakra-ui/core';
+import { withSession } from '../lib/withSession';
+import { checkAuth } from '../utils/checkAuth';
 
-const Profile = ({ user }: { user: any }) => {
+const Profile = () => {
+  console.log('PASSWORD: ', process.env.NEXT_PUBLIC_SESSION_PASSWORD);
   const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
-  // const { user: user2, isLoading, status: userStatus } = useMe();
+  const { data, error, status: userStatus } = useMe();
+  const user = userStatus === 'success' && data.data.data;
 
   const {
     mutate,
@@ -52,11 +56,7 @@ const Profile = ({ user }: { user: any }) => {
       client(`${BASE_URL}/users/updateImage`, {
         method: 'PATCH',
         body: formData,
-
         credentials: 'include',
-        // headers: {
-        //   'Content-Type': 'multipart/form-data',
-        // },
       }),
     {
       onSettled: () => {
@@ -67,7 +67,6 @@ const Profile = ({ user }: { user: any }) => {
 
   return (
     <>
-      {/* <pre>{JSON.stringify(userSSR, null, 2)}</pre> */}
       <Header title='My profile' />
       <ContentHeader
         title='My profile'
@@ -93,17 +92,17 @@ const Profile = ({ user }: { user: any }) => {
           alignItems='center'
         >
           <Box position='relative' width='250px' mr='32px'>
-            {/* {userStatus === 'loading' || mutateStatus === 'loading' ? (
+            {userStatus === 'loading' || mutateStatus === 'loading' ? (
               <SkeletonCircle w='200px' h='200px' />
-            ) : ( */}
-            <Image
-              objectFit='cover'
-              boxSize='200px'
-              borderRadius='50%'
-              src={`http://localhost:4444/api/v1/users/images/${user.profilePicture}`}
-              fallback={<SkeletonCircle w='200px' h='200px' />}
-            />
-            {/* )} */}
+            ) : (
+              <Image
+                objectFit='cover'
+                boxSize='200px'
+                borderRadius='50%'
+                src={`${BASE_URL}/users/images/${user.profilePicture}`}
+                fallback={<SkeletonCircle w='200px' h='200px' />}
+              />
+            )}
             <input
               type='file'
               hidden
@@ -131,7 +130,13 @@ const Profile = ({ user }: { user: any }) => {
               right={'20px'}
             />
           </Box>
-          {mutateStatus === 'loading' ? null : (
+          {userStatus === 'loading' ||
+          mutateStatus === 'loading' ? null : userStatus === 'error' ? (
+            <Alert status='error'>
+              <AlertIcon />
+              <AlertTitle>{(error as Error).message}</AlertTitle>
+            </Alert>
+          ) : (
             <Box>
               <Text
                 as='h2'
@@ -420,55 +425,9 @@ function Title({ text, ...props }: { text: string }) {
 }
 
 export const getServerSideProps: GetServerSideProps = withSession(
-  async function ({ req, res }: any) {
-    const user = req.session.get('jwt');
-    if (!user) {
-      return {
-        redirect: {
-          destination: '/login',
-          permanent: false,
-        },
-      };
-    }
-    return {
-      props: { user: req.session.get('user') },
-    };
-    // const queryClient = new QueryClient();
-    // try {
-    //   await queryClient.fetchQuery('userProfile', () =>
-    //     client('http://localhost:4444/api/v1/users/me', {
-    //       method: 'GET',
-    //       credentials: 'include',
-    //       headers: {
-    //         Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-    //       },
-    //     })
-    //   );
-
-    //   return {
-    //     props: { dehydratedState: dehydrate(queryClient) },
-    //   };
-    // } catch (err) {
-    //   return {
-    //     redirect: {
-    //       destination: '/login',
-    //       permanent: false,
-    //     },
-    //   };
-    // }
+  async function ({ req, _res }: any) {
+    return checkAuth(req);
   }
 );
 
 export default Profile;
-
-export function withSession(handler: any) {
-  return withIronSession(handler, {
-    password: '2gyZ3GDw3LHZQKDhPmPDL3sjREVRXPr8',
-    cookieName: 'next.js/examples/with-iron-session',
-    cookieOptions: {
-      // the next line allows to use the session in non-https environments like
-      // Next.js dev mode (http://localhost:3000)
-      secure: false,
-    },
-  });
-}

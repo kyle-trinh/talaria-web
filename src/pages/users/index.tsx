@@ -60,6 +60,8 @@ import Filter from '../../components/Options/Filter';
 import { Field, FieldInputProps } from 'formik';
 import { renderDate } from '../../utils';
 import { I_User } from '../../types';
+import { checkAuth } from '../../utils/checkAuth';
+import { withSession } from '../../lib/withSession';
 const layout = Array.from({ length: 8 });
 
 const LoadingLayout = () => (
@@ -86,7 +88,6 @@ const Cryptos = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
   const [filter, setFilter] = useState('');
-  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const [fieldName, fieldOrder] = sort.split(':');
   const { status, data, error } = useQuery(
     ['users', page, sort, limit, filter],
@@ -108,12 +109,7 @@ const Cryptos = () => {
   return (
     <>
       <Header title='Users' />
-      <ContentHeader
-        title='Users'
-        user={user}
-        isLoading={isUserLoading}
-        status={userStatus}
-      />
+      <ContentHeader title='Users' />
       <Box
         gridArea='main'
         bg='white'
@@ -406,33 +402,10 @@ function UserRow({
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient) },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req, res }: GetServerSidePropsContext) {
+    return checkAuth(req);
   }
-};
+);
 
 export default Cryptos;

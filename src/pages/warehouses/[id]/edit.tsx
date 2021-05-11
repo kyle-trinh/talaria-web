@@ -24,6 +24,8 @@ import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { dehydrate } from 'react-query/hydration';
 import { useMe } from '../../../hooks/useMe';
 import { removeBlankField } from '../../../utils';
+import { checkAuth } from '../../../utils/checkAuth';
+import { withSession } from '../../../lib/withSession';
 
 interface I_FormData {
   name: string;
@@ -39,7 +41,6 @@ interface I_FormData {
 
 export default function NewCrypto({ id }: { id: string }) {
   const route = useRouter();
-  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
     (data: I_FormData) => {
       const submitData = removeBlankField({
@@ -74,12 +75,7 @@ export default function NewCrypto({ id }: { id: string }) {
   return (
     <>
       <Header title='Edit warehouse' />
-      <ContentHeader
-        title='Edit warehouse'
-        user={user}
-        isLoading={isUserLoading}
-        status={userStatus}
-      />
+      <ContentHeader title='Edit warehouse' />
       <ContentBody>
         {warehouseStatus === 'loading' ? null : warehouseStatus === 'error' ? (
           <Alert>
@@ -218,32 +214,8 @@ export default function NewCrypto({ id }: { id: string }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-  params,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient), id: params!.id },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req, res, params }: GetServerSidePropsContext) {
+    return checkAuth(req, { id: params!.id });
   }
-};
+);

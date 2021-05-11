@@ -1,4 +1,4 @@
-import { withSession } from '../me';
+import { withSession } from '../../lib/withSession';
 import { client } from '../../utils/api-client';
 import { BASE_URL } from '../../constants';
 import Cookies from 'cookies';

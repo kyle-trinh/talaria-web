@@ -4,6 +4,7 @@ import {
   Alert,
   AlertIcon,
   AlertTitle,
+  HStack,
   VStack,
 } from '@chakra-ui/react';
 import { useMutation, QueryClient } from 'react-query';
@@ -81,7 +82,7 @@ const Register = () => {
                 </AlertTitle>
               </Alert>
             ) : null}
-            <VStack justifyContent='flex-start' spacing='8px'>
+            <VStack spacing='12px' alignItems='stretch' width='400px'>
               <InputField
                 name='firstName'
                 placeholder='First Name'
@@ -113,19 +114,21 @@ const Register = () => {
                 type='password'
               />
             </VStack>
-            <Button
-              colorScheme='teal'
-              type='submit'
-              isLoading={isLoading}
-              loadingText='Submitting'
-            >
-              Register
-            </Button>
-            <Button colorScheme='gray' ml={3}>
-              <Link href='/login'>
-                <a>Login</a>
-              </Link>
-            </Button>
+            <HStack spacing='8px' mt='16px'>
+              <Button
+                colorScheme='teal'
+                type='submit'
+                isLoading={isLoading}
+                loadingText='Submitting'
+              >
+                Register
+              </Button>
+              <Button colorScheme='gray' ml={3}>
+                <Link href='/login'>
+                  <a>Login</a>
+                </Link>
+              </Button>
+            </HStack>
           </Form>
         )}
       </Formik>

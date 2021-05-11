@@ -56,6 +56,8 @@ import { dehydrate } from 'react-query/hydration';
 import { useMe } from '../../hooks/useMe';
 import { removeBlankField } from '../../utils';
 import { I_Giftcard } from '../../types';
+import { checkAuth } from '../../utils/checkAuth';
+import { withSession } from '../../lib/withSession';
 
 const layout = Array.from({ length: 8 });
 
@@ -83,7 +85,6 @@ const Cryptos = () => {
   const [sort, setSort] = useState('_id:desc');
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
-  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
   const [fieldName, fieldOrder] = sort.split(':');
   const { status, data, error } = useQuery(
     ['giftcards', page, selected, sort, limit],
@@ -104,12 +105,7 @@ const Cryptos = () => {
   return (
     <>
       <Header title='Giftcards' />
-      <ContentHeader
-        title='Giftcards'
-        user={user}
-        isLoading={isUserLoading}
-        status={userStatus}
-      />
+      <ContentHeader title='Giftcards' />
       <Box
         gridArea='main'
         bg='white'
@@ -396,33 +392,10 @@ function GiftcardRow({
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient) },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req, res }: GetServerSidePropsContext) {
+    return checkAuth(req);
   }
-};
+);
 
 export default Cryptos;

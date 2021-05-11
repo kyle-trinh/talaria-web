@@ -38,7 +38,6 @@ import NextLink from 'next/link';
 import { Sort } from '../../components/Options';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { dehydrate } from 'react-query/hydration';
-import { useMe } from '../../hooks/useMe';
 import { I_Account } from '../../types';
 
 export default function AccountPage() {
@@ -46,8 +45,6 @@ export default function AccountPage() {
   const [page, setPage] = useState(1);
   const [fieldName, fieldOrder] = sort.split(':');
   const queryClient = useQueryClient();
-
-  const { user, isLoading: isUserLoading, status: userStatus } = useMe();
 
   const { data, status, error } = useQuery(['accounts', sort, page], () =>
     client(
@@ -89,12 +86,7 @@ export default function AccountPage() {
   return (
     <>
       <Header title='Accounts' />
-      <ContentHeader
-        title='Accounts'
-        user={user}
-        isLoading={isUserLoading}
-        status={userStatus}
-      />
+      <ContentHeader title='Accounts' />
       <ContentBody>
         <Box>
           <HStack justifyContent='flex-end' spacing={8}>

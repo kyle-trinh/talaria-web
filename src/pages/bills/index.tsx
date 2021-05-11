@@ -9,57 +9,21 @@ import {
   Tr,
   Th,
   Td,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   IconButton,
-  Tooltip,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
   Skeleton,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverArrow,
-  PopoverCloseButton,
-  PopoverHeader,
-  PopoverBody,
-  ListItem,
-  List,
-  ListIcon,
-  Link,
   FormControl,
-  Input,
   FormLabel,
   Select,
 } from '@chakra-ui/react';
-import React, { useState, useRef } from 'react';
-import { RiMoreFill } from 'react-icons/ri';
+import React, { useState } from 'react';
 import Header from '../../components/Header';
-import { BiCheckCircle } from 'react-icons/bi';
 import {
   BASE_URL,
   ITEM_DEFAULT,
   GIFT_CARD_DEFAULT,
   USER_MAP,
 } from '../../constants';
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  QueryClient,
-} from 'react-query';
-import { dehydrate } from 'react-query/hydration';
+import { useQuery, useQueryClient } from 'react-query';
 import { client } from '../../utils/api-client';
 import { Sort } from '../../components/Options';
 import ContentHeader from '../../components/ContentHeader';
@@ -67,9 +31,10 @@ import NextLink from 'next/link';
 import { Field, FieldInputProps } from 'formik';
 import BillRow from '../../components/BillRow';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
-import { useMe } from '../../hooks/useMe';
 import Filter from '../../components/Options/Filter';
 import { I_Bill } from '../../types';
+import { checkAuth } from '../../utils/checkAuth';
+import { withSession } from '../../lib/withSession';
 const layout = Array.from({ length: 8 });
 
 const LoadingLayout = () => (
@@ -91,13 +56,11 @@ const LoadingLayout = () => (
   </>
 );
 const Cryptos = () => {
-  const [freezeNo, setFreezeNo] = useState(4);
   const [selected, setSelected] = useState(GIFT_CARD_DEFAULT);
   const [sort, setSort] = useState('_id:desc');
   const [page, setPage] = useState(1);
   const [limit] = useState(8);
   const [filter, setFilter] = useState('');
-  const { user, isLoading: userIsLoading, status: userStatus } = useMe();
   const [fieldName, fieldOrder] = sort.split(':');
   const { status, data, error } = useQuery(
     ['bills', page, selected, sort, limit, filter],
@@ -119,12 +82,7 @@ const Cryptos = () => {
   return (
     <>
       <Header title='Bills' />
-      <ContentHeader
-        title='Bills'
-        user={user}
-        isLoading={userIsLoading}
-        status={userStatus}
-      />
+      <ContentHeader title='Bills' />
       <Box
         gridArea='main'
         bg='white'
@@ -277,33 +235,10 @@ const Cryptos = () => {
     </>
   );
 };
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient) },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req }: GetServerSidePropsContext) {
+    return checkAuth(req);
   }
-};
+);
 
 export default Cryptos;

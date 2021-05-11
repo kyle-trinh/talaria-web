@@ -63,10 +63,10 @@ import { InputField } from '../../../components/InputField';
 import { BiCheckCircle } from 'react-icons/bi';
 import { renderDate } from '../../../utils';
 import { I_Bill, I_Commission } from '../../../types';
+import { checkAuth } from '../../../utils/checkAuth';
+import { withSession } from '../../../lib/withSession';
 
 export default function AffiliateDetail({ id }: { id: string }) {
-  const { user, isLoading, status } = useMe();
-
   const queryClient = useQueryClient();
 
   const { data, status: affiliateStatus } = useQuery(['user', id], () =>
@@ -116,12 +116,7 @@ export default function AffiliateDetail({ id }: { id: string }) {
   return (
     <>
       <Header title='User details' />
-      <ContentHeader
-        title='User details'
-        user={user}
-        isLoading={isLoading}
-        status={status}
-      />
+      <ContentHeader title='User details' />
       <Box
         gridArea='main'
         bg='white'
@@ -825,32 +820,8 @@ function Title({ text, ...props }: { text: string }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async function ({
-  req,
-  res,
-  params,
-}: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
-  try {
-    await queryClient.fetchQuery('userProfile', () =>
-      client('http://localhost:4444/api/v1/users/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: req.cookies?.jwt && `Bearer ${req.cookies.jwt}`,
-        },
-      })
-    );
-
-    return {
-      props: { dehydratedState: dehydrate(queryClient), id: params!.id },
-    };
-  } catch (err) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+export const getServerSideProps: GetServerSideProps = withSession(
+  async function ({ req, params }: GetServerSidePropsContext) {
+    return checkAuth(req, { id: params!.id });
   }
-};
+);
