@@ -1,6 +1,6 @@
 const BASE_URL =
   process.env.NODE_ENV === 'production'
-    ? 'https://polar-river-10904.herokuapp.com/api/v1'
+    ? 'https://api.talaria-order.xyz/api/v1'
     : 'http://localhost:4444/api/v1';
 
 const ITEM_FIELD_MAP_2 = {
