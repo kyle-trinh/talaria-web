@@ -571,7 +571,6 @@ export default function NewBill() {
                                             </FormLabel>
                                             <Select
                                               {...field}
-                                              placeholder='Select option'
                                               id='warehouse'
                                               required
                                             >

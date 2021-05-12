@@ -32,7 +32,10 @@ export default withSession(async (req: any, res: any) => {
     }
     res.json(data);
   } catch (error) {
+    console.log(error);
     const { response: fetchResponse } = error;
-    res.status(fetchResponse?.status || 500).json(error.data);
+    res
+      .status(fetchResponse?.status || 500)
+      .json({ status: 'error', message: error.message });
   }
 });

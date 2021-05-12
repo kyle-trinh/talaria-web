@@ -29,12 +29,14 @@ interface ResponseError {
 const Register = () => {
   const route = useRouter();
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
-    (data: { email: string; password: string }) =>
+    (data: { email: string; password: string; profile: any }) =>
       client(`api/register`, {
         method: 'POST',
         body: JSON.stringify({
           ...data,
+          role: 'admin',
           profile: {
+            ...data.profile,
             commissionRates: [
               { website: 'amazon', rate: 0.05 },
               { website: 'sephora', rate: 0.05 },
@@ -92,12 +94,13 @@ const Register = () => {
               <Alert status='error'>
                 <AlertIcon />
                 <AlertTitle mr={2}>
-                  {(error as ResponseError).message
-                    .split('.')
-                    .splice(1)
-                    .map((err) => (
-                      <p>{err}</p>
-                    ))}
+                  {
+                    (error as Error).message
+                    // .split('.')
+                    // .splice(1)
+                    // .map((err) => (
+                    //   <p>{err}</p>
+                  }
                 </AlertTitle>
               </Alert>
             ) : null}

@@ -47,7 +47,7 @@ import {
   SELECT_STYLE,
   ACCOUNTS,
 } from '../../constants';
-import { useMutation, useQueryClient, QueryClient } from 'react-query';
+import { useMutation, useQueryClient } from 'react-query';
 import { client } from '../../utils/api-client';
 import { truncate } from '../../utils/index';
 import { FreezeCol, Sort, LimitField } from '../../components/Options';
@@ -56,15 +56,13 @@ import { TableCeil } from '../../components/styles/Table';
 import ContentHeader from '../../components/ContentHeader';
 import Link from 'next/link';
 import { useItems, useDeleteItem } from '../../utils/items';
-import { useMe } from '../../hooks/useMe';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
-import { dehydrate } from 'react-query/hydration';
 import { I_Item } from '../../types';
 import { checkAuth } from '../../utils/checkAuth';
 import { withSession } from '../../lib/withSession';
 
 const FilterInput = () => (
-  <VStack spacing='8px'>
+  <VStack spacing='8px' alignItems='stretch'>
     <InputField
       name='pricePerItemFrom'
       label='Price From'
@@ -144,7 +142,7 @@ const FilterInput = () => (
   </VStack>
 );
 
-const LoadingLayout = () => (
+export const LoadingTable = () => (
   <>
     {Array.from({ length: 8 }).map((_item, i) => (
       <Tr height='57px' key={i}>
@@ -279,9 +277,11 @@ const Items = () => {
                 </Thead>
                 <Tbody>
                   {status === 'loading' ? (
-                    <LoadingLayout />
+                    <LoadingTable />
                   ) : status === 'error' ? (
-                    <span>{(error as Error).message}</span>
+                    <Tr>
+                      <Td>{(error as Error).message}</Td>
+                    </Tr>
                   ) : (
                     <>
                       {data.data.data.map((single: I_Item) => (
@@ -395,7 +395,14 @@ function ItemRow({ single, reloadPage, selected, freezeNo }: ItemRowProps) {
         const [output, fullStr] = truncate(
           single[field as keyof I_Item],
           16,
-          ITEM_FIELD_MAP_2[field as keyof I_Item].type
+          ITEM_FIELD_MAP_2[field as keyof I_Item].type,
+          field === 'orderAccount'
+            ? 'accounts'
+            : field === 'transaction'
+            ? 'transactions'
+            : field === 'warehouse'
+            ? 'warehouses'
+            : 'items'
         );
         if (index < freezeNo) {
           return (
@@ -441,6 +448,9 @@ function ItemRow({ single, reloadPage, selected, freezeNo }: ItemRowProps) {
             borderRadius='50%'
           />
           <MenuList>
+            <Link href={`/items/${single._id}`} passHref>
+              <MenuItem>View details</MenuItem>
+            </Link>
             <Link href={`/items/${single._id}/edit`} passHref>
               <MenuItem>Edit</MenuItem>
             </Link>

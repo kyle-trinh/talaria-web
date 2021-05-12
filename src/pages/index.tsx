@@ -308,7 +308,7 @@ function CommissionRow({ commission }: { commission: any }) {
         <Button
           size='sm'
           colorScheme='teal'
-          disabled={commission.status === 'fully-paid'}
+          disabled={commission.status === 'paid'}
           onClick={onOpen}
         >
           Pay

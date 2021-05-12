@@ -37,7 +37,6 @@ import {
 import NextLink from 'next/link';
 import { Sort } from '../../components/Options';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
-import { dehydrate } from 'react-query/hydration';
 import { I_Account } from '../../types';
 import { checkAuth } from '../../utils/checkAuth';
 import { withSession } from '../../lib/withSession';
@@ -92,9 +91,9 @@ export default function AccountPage() {
       <ContentBody>
         <Box>
           <HStack justifyContent='flex-end' spacing={8}>
-            <NextLink href='/accounts/new' passHref>
+            {/* <NextLink href='/accounts/new' passHref>
               <Button colorScheme='teal'>Add account +</Button>
-            </NextLink>
+            </NextLink> */}
             <Sort
               setSort={setSort}
               map={ACCOUNT_FIELD_MAP}
@@ -233,6 +232,9 @@ function AcctRow({
             borderRadius='50%'
           />
           <MenuList>
+            <NextLink href={`/accounts/${single._id}`} passHref>
+              <MenuItem>View details</MenuItem>
+            </NextLink>
             <>
               <MenuItem
                 onClick={() => {

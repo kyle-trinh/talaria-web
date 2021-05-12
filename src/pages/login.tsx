@@ -18,6 +18,7 @@ import cookie from 'cookie';
 import React from 'react';
 import { withSession } from '../lib/withSession';
 import { GetServerSideProps } from 'next';
+import Header from '../components/Header';
 
 interface LoginProps {}
 
@@ -42,6 +43,7 @@ const Login = () => {
 
   return (
     <Box maxW='400' w='100%'>
+      <Header title='Login' />
       <Box textStyle='h1' textAlign='center' mb={20} as='h1'>
         Login
       </Box>

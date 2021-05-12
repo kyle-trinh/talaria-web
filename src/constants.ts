@@ -200,7 +200,6 @@ export interface I_Item {
 }
 
 const ITEM_FIELDS = [
-  '_id',
   'createdAt',
   'name',
   'link',
@@ -341,7 +340,6 @@ const ACCOUNTS = [
 ];
 
 const CRYPTO_FIELDS = [
-  '_id',
   'createdAt',
   'updatedAt',
   'btcAmount',
@@ -357,7 +355,6 @@ const CRYPTO_FIELDS = [
 ];
 
 const CRYPTO_DEFAULT = [
-  '_id',
   'createdAt',
   'btcAmount',
   'withdrawFee',
