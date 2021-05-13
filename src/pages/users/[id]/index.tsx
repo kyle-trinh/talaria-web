@@ -141,7 +141,7 @@ export default function AffiliateDetail({ id }: { id: string }) {
                     objectFit='cover'
                     boxSize='200px'
                     borderRadius='50%'
-                    src={`http://localhost:4444/api/v1/users/images/${affiliate.profilePicture}`}
+                    src={`${BASE_URL}/users/images/${affiliate.profilePicture}`}
                     fallback={<SkeletonCircle w='200px' h='200px' />}
                   />
                 )
