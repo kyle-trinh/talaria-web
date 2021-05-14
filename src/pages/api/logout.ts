@@ -11,5 +11,5 @@ export default withSession(async (req: any, res: any) => {
     domain:
       process.env.NODE_ENV === 'production' ? '.talaria-order.xyz' : undefined,
   });
-  res.json({ status: 'success' });
+  res.status(200).json({ status: 'success' });
 });
