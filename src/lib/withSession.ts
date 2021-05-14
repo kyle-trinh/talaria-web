@@ -7,7 +7,9 @@ export function withSession(handler: any) {
     cookieOptions: {
       // the next line allows to use the session in non-https environments like
       // Next.js dev mode (http://localhost:3000)
-      secure: false,
+      secure: true,
+      httpOnly: true,
+
       domain:
         process.env.NODE_ENV === 'production'
           ? '.talaria-order.xyz'
