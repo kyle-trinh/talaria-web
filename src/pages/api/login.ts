@@ -24,7 +24,8 @@ export default withSession(async (req: any, res: any) => {
     if (data.token) {
       cookies.set('jwt', data.token, {
         expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-        httpOnly: false,
+        httpOnly: true,
+        path: '/',
         domain:
           process.env.NODE_ENV === 'production'
             ? '.talaria-order.xyz'

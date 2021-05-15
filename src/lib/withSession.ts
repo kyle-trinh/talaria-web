@@ -9,7 +9,8 @@ export function withSession(handler: any) {
       // Next.js dev mode (http://localhost:3000)
       secure: true,
       httpOnly: true,
-
+      path: '/',
+      sameSite: 'lax',
       domain:
         process.env.NODE_ENV === 'production'
           ? '.talaria-order.xyz'

@@ -2,13 +2,12 @@ import Cookies from 'cookies';
 import { withSession } from '../../lib/withSession';
 
 export default withSession(async (req: any, res: any) => {
-  req.session.unset('jwt');
-  await req.session.save();
-
+  req.session.destroy();
   const cookies = new Cookies(req, res);
   cookies.set('jwt', 'loggedout', {
     expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: false,
+    httpOnly: true,
+    path: '/',
     domain:
       process.env.NODE_ENV === 'production' ? '.talaria-order.xyz' : undefined,
   });
