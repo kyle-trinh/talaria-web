@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { useMutation, QueryClient } from 'react-query';
 import { useRouter } from 'next/router';
-import { GetServerSideProps, GetServerSidePropsContext } from 'next';
+import { GetServerSideProps } from 'next';
 import { client } from '../utils/api-client';
 import { dehydrate } from 'react-query/hydration';
 import { Form, Formik } from 'formik';
@@ -17,20 +17,17 @@ import { InputField } from '../components/InputField';
 import Link from 'next/link';
 import Header from '../components/Header';
 import { BASE_URL } from '../constants';
-import { checkAuth } from '../utils/checkAuth';
-import { withSession } from '../lib/withSession';
-import { IncomingMessage } from 'node:http';
 
-interface ResponseError {
-  status: string;
-  message: string;
-}
+// interface ResponseError {
+//   status: string;
+//   message: string;
+// }
 
 const Register = () => {
   const route = useRouter();
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
     (data: { email: string; password: string; profile: any }) =>
-      client(`api/register`, {
+      client(`${BASE_URL}/users/signup`, {
         method: 'POST',
         body: JSON.stringify({
           ...data,
@@ -175,19 +172,36 @@ const Register = () => {
     </Box>
   );
 };
-export const getServerSideProps: GetServerSideProps = withSession(
-  async function ({ req }: any) {
-    const jwt = req.session.get('jwt');
-    if (jwt) {
+export const getServerSideProps: GetServerSideProps = async function ({
+  req,
+}: any) {
+  const token = req.cookies?.jwt;
+  if (token) {
+    try {
+      const queryClient = new QueryClient();
+      await queryClient.fetchQuery('userProfile', () => {
+        return client(`${BASE_URL}/users/me`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Authorization: token && `Bearer ${token}`,
+          },
+        });
+      });
       return {
+        props: { dehydratedState: dehydrate(queryClient) },
         redirect: {
           destination: '/me',
           permanent: false,
         },
       };
+    } catch (err) {
+      return {
+        props: {},
+      };
     }
-    return { props: {} };
   }
-);
+  return { props: {} };
+};
 
 export default Register;

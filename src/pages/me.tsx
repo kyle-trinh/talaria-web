@@ -42,7 +42,6 @@ import { checkAuth } from '../utils/checkAuth';
 import NextLink from 'next/link';
 
 const Profile = () => {
-  console.log('PASSWORD: ', process.env.NEXT_PUBLIC_SESSION_PASSWORD);
   const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const { data, error, status: userStatus } = useMe();
@@ -449,28 +448,30 @@ export const getServerSideProps: GetServerSideProps = async function ({
   req,
   _res,
 }: any) {
-  // return checkAuth(req);
-  const queryClient = new QueryClient();
-  console.log(req.cookies);
-  try {
-    const token = req.cookies.jwt;
-    await queryClient.fetchQuery('userProfile', () => {
-      return client(`${BASE_URL}/users/me`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: token && `Bearer ${token}`,
-        },
-      });
-    });
-    return {
-      props: { dehydratedState: dehydrate(queryClient) },
-    };
-  } catch {
-    return {
-      props: {},
-    };
-  }
+  return checkAuth(req);
+  // const queryClient = new QueryClient();
+  // try {
+  //   const token = req.cookies.jwt;
+  //   await queryClient.fetchQuery('userProfile', () => {
+  //     return client(`${BASE_URL}/users/me`, {
+  //       method: 'GET',
+  //       credentials: 'include',
+  //       headers: {
+  //         Authorization: token && `Bearer ${token}`,
+  //       },
+  //     });
+  //   });
+  //   return {
+  //     props: { dehydratedState: dehydrate(queryClient) },
+  //   };
+  // } catch {
+  //   return {
+  //     redirect: {
+  //       destination: '/login',
+  //       permanent: false,
+  //     },
+  //   };
+  // }
 };
 
 export default Profile;

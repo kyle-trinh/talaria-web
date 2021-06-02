@@ -7,7 +7,7 @@ import {
   HStack,
   VStack,
 } from '@chakra-ui/react';
-import { useMutation } from 'react-query';
+import { QueryClient, useMutation } from 'react-query';
 import { useRouter } from 'next/router';
 import { client } from '../utils/api-client';
 import { Form, Formik } from 'formik';
@@ -16,10 +16,10 @@ import Link from 'next/link';
 import { IncomingMessage } from 'node:http';
 import cookie from 'cookie';
 import React from 'react';
-import { withSession } from '../lib/withSession';
 import { GetServerSideProps } from 'next';
 import Header from '../components/Header';
 import { BASE_URL } from '../constants';
+import { dehydrate } from 'react-query/hydration';
 
 interface LoginProps {}
 
@@ -105,20 +105,38 @@ const Login = () => {
   );
 };
 
-export const getServerSideProps: GetServerSideProps = withSession(
-  async function ({ req }: any) {
-    const jwt = req.session.get('jwt');
-    if (jwt) {
+export const getServerSideProps: GetServerSideProps = async function ({
+  req,
+}: any) {
+  const token = req.cookies?.jwt;
+  if (token) {
+    try {
+      const queryClient = new QueryClient();
+      await queryClient.fetchQuery('userProfile', () => {
+        return client(`${BASE_URL}/users/me`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Authorization: token && `Bearer ${token}`,
+          },
+        });
+      });
       return {
+        props: { dehydratedState: dehydrate(queryClient) },
         redirect: {
           destination: '/me',
           permanent: false,
         },
       };
+    } catch (err) {
+      return {
+        props: {},
+      };
     }
-    return { props: {} };
   }
-);
+  return { props: {} };
+};
+
 //   // try {
 //   //   const queryClient = new QueryClient();
 //   //   const token = parseCookies().jwt;
