@@ -445,10 +445,32 @@ function Title({ text, ...props }: { text: string }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = withSession(
-  async function ({ req, _res }: any) {
-    return checkAuth(req);
+export const getServerSideProps: GetServerSideProps = async function ({
+  req,
+  _res,
+}: any) {
+  // return checkAuth(req);
+  const queryClient = new QueryClient();
+  console.log(req.cookies);
+  try {
+    const token = req.cookies.jwt;
+    await queryClient.fetchQuery('userProfile', () => {
+      return client(`${BASE_URL}/users/me`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Authorization: token && `Bearer ${token}`,
+        },
+      });
+    });
+    return {
+      props: { dehydratedState: dehydrate(queryClient) },
+    };
+  } catch {
+    return {
+      props: {},
+    };
   }
-);
+};
 
 export default Profile;

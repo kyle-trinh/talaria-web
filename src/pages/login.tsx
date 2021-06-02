@@ -19,6 +19,7 @@ import React from 'react';
 import { withSession } from '../lib/withSession';
 import { GetServerSideProps } from 'next';
 import Header from '../components/Header';
+import { BASE_URL } from '../constants';
 
 interface LoginProps {}
 
@@ -26,7 +27,7 @@ const Login = () => {
   const route = useRouter();
   const { mutate, isLoading, isError, error, isSuccess } = useMutation(
     (data: { email: string; password: string }) =>
-      client('/api/login', {
+      client(`${BASE_URL}/users/signin`, {
         method: 'POST',
         body: JSON.stringify(data),
         headers: {
@@ -103,6 +104,7 @@ const Login = () => {
     </Box>
   );
 };
+
 export const getServerSideProps: GetServerSideProps = withSession(
   async function ({ req }: any) {
     const jwt = req.session.get('jwt');

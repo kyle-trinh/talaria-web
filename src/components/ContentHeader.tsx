@@ -29,7 +29,7 @@ export default function ContentHeader({ title }: Props) {
   const queryClient = useQueryClient();
   const { mutate, status: mutateStatus } = useMutation(
     () =>
-      client(`/api/logout`, {
+      client(`${BASE_URL}/users/signout`, {
         method: 'GET',
         credentials: 'include',
       }),
